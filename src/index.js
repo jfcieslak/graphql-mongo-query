@@ -14,12 +14,6 @@ const args = {
 	}
 }
 
-const nested = {
-	'address.street': 'String',
-	'address.zip': /regex/,
-	'address.aa.bb': 1
-}
-
 function buildFilters(args) {
 	const directTypes = ['string', 'number', 'boolean']
 	const keywords = {
@@ -27,13 +21,14 @@ function buildFilters(args) {
 		compare: { _NE: '$ne', _IN: '$in', _NIN: '$nin', _ALL: '$all' },
 		value: { _REGEX: '$regex', _DATE: '$date' }
 	}
+	let isEmbedded = false
 	function parseEmbedded(key, val, lastResult = {}) {
 		let result = lastResult
 		for (let k in val) {
 			const subkey = key + '.' + k
 			const subval = val[k]
 			const finalVal = buildFilters(subval)
-			console.log(subkey, subval, !!finalVal)
+			console.log(subkey, subval, isEmbedded)
 			if (!finalVal) parseEmbedded(subkey, subval, result)
 			else result[subkey] = buildFilters(subval)
 		}
@@ -68,15 +63,13 @@ function buildFilters(args) {
 
 		const isFilterLogic = ~Object.keys(keywords.logic).indexOf(key)
 		const isFilterCompare = checkForKeywords(keywords.compare)
-		const isFilterValue =
-			checkForKeywords(keywords.value) || ~directTypes.indexOf(typeof val)
+		const isFilterValue = checkForKeywords(keywords.value) || ~directTypes.indexOf(typeof val)
 
 		// LOGICAL
 		if (isFilterLogic && Array.isArray(val)) {
 			const kw = keywords.logic
 			for (let k in kw) {
-				if (key === k)
-					filters[kw[k]] = val.map(orArgs => buildFilters(orArgs))
+				if (key === k) filters[kw[k]] = val.map(orArgs => buildFilters(orArgs))
 			}
 		}
 		// COMPARE
@@ -98,6 +91,7 @@ function buildFilters(args) {
 		}
 		// EMBEDED
 		else if (typeof val === 'object') {
+			isEmbedded = true
 			filters = { ...filters, ...parseEmbedded(key, val) }
 		}
 	}
@@ -106,44 +100,3 @@ function buildFilters(args) {
 
 const filters = buildFilters(args)
 console.log(filters)
-
-const stringFilters = {
-	str1: 'String',
-	str2: /regex/,
-	str3: { $ne: 'String' }, // equals not Element
-	str4: { $in: ['String', /regex/i] }, // equals any of the Elements
-	str5: { $nin: ['String', /regex/i] } // equals none of the Elements
-}
-
-const stringArrayFilters = {
-	arr1: 'String', // contains exact STRING
-	arr2: /regex/, // contains REGEX
-	arr3: { $ne: 'String' }, // contains no Element
-	arr4: { $in: ['String', /regex/i] }, // contains any of the Elements
-	arr5: { $nin: ['String', /regex/i] }, // contains none of the Elements
-	arr6: { $all: ['String', /regex/i] } // contains all of the Elements
-}
-
-const numericFilters = {
-	// Including: Int, Float, Date, etc
-	num1: 12,
-	num2: { $ne: 12 },
-	num3: { $gt: 12 },
-	num4: { $gte: 12 },
-	num5: { $lt: 12 },
-	num6: { $lte: 12 },
-	num7: { $in: [12, 14] },
-	num8: { $nin: [12, 14] }
-}
-
-const numericArrayFilters = {
-	num1: 12,
-	num2: { $ne: 12 },
-	num3: { $gt: 12 },
-	num4: { $gte: 12 },
-	num5: { $lt: 12 },
-	num6: { $lte: 12 },
-	num7: { $in: [12, 14] },
-	num8: { $nin: [12, 14] },
-	num9: { $all: [12, 14] }
-}
