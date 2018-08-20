@@ -1,6 +1,6 @@
 const args = {
 	str1: 'abcd',
-	_OR: [{ str1: 10 }, { str2a: { _DATE: '2018' } }],
+	_OR: [{ num: 10 }, { date: { _DATE: '2018' } }],
 	str2b: { _REGEX: 'regex', _FLAG: 'i' },
 	str3: { _NE: 'String' },
 	str3a: { _NE: { _REGEX: 'regex', _FLAG: 'i' } },
@@ -10,31 +10,75 @@ const args = {
 	adress: {
 		street: 'String',
 		zip: { _REGEX: 'regex' },
-		aa: { bb: { cc: { _NE: 1 } } }
+		aa: { bb: { cc: { dd: { _NE: 1 } } } },
+		xx: { _OR: ['A', 'B'] }
 	}
 }
 
-function buildFilters(args) {
-	const directTypes = ['string', 'number', 'boolean']
-	const keywords = {
-		logic: { _OR: '$or', _AND: '$and', _NOR: '$nor' },
-		compare: { _NE: '$ne', _IN: '$in', _NIN: '$nin', _ALL: '$all' },
-		value: { _REGEX: '$regex', _DATE: '$date' }
-	}
-	let isEmbedded = false
-	function parseEmbedded(key, val, lastResult = {}) {
-		let result = lastResult
-		for (let k in val) {
-			const subkey = key + '.' + k
-			const subval = val[k]
-			const finalVal = buildFilters(subval)
-			console.log(subkey, subval, isEmbedded)
-			if (!finalVal) parseEmbedded(subkey, subval, result)
-			else result[subkey] = buildFilters(subval)
-		}
-		return result
-	}
+const directTypes = ['string', 'number', 'boolean']
+const keywords = {
+	logic: { _OR: '$or', _AND: '$and', _NOR: '$nor' },
+	compare: { _NE: '$ne', _IN: '$in', _NIN: '$nin', _ALL: '$all' },
+	value: { _REGEX: '$regex', _FLAG: null, _DATE: '$date' }
+}
 
+function isLogicFilter(key, val) {
+	return ~Object.keys(keywords.logic).indexOf(key) && Array.isArray(val)
+}
+
+function isCompareFilter(key, val) {
+	return ~Object.keys(keywords.compare).indexOf(key)
+}
+
+function isValue(val) {
+	if (~directTypes.indexOf(typeof val)) return true
+	else if (typeof val === 'object') {
+		let isValue = false
+		for (let k in val) {
+			if (~Object.keys(keywords.value).indexOf(k)) {
+				isValue = true
+			}
+		}
+		return isValue
+	}
+}
+
+function argType(key, val) {
+	if (isLogicFilter(key, val)) return 'LOGIC'
+	else if (isCompareFilter(key, val)) return 'COMPARE'
+	else if (isValue(val)) return 'VALUE'
+	else if (typeof val === 'object') {
+		let isEmbedded = false
+		for (let k in val) {
+			if (!isLogicFilter(k, val[k]) && !isCompareFilter(k, val[k]) && !isValue(val[k])) {
+				isEmbedded = true
+				break
+			}
+		}
+		if (isEmbedded) return 'EMBEDDED'
+	} else return null
+}
+
+function parseEmbedded(key, val, lastResult = {}) {
+	let result = lastResult
+	for (let k in val) {
+		const subkey = key + '.' + k
+		const subval = val[k]
+		let isFinal = false
+		for (let sk in subval) {
+			const t = argType(sk, subval)
+			if (t !== 'EMBEDDED') {
+				isFinal = true
+				break
+			}
+		}
+		if (isFinal) result[subkey] = buildFilters(subval)
+		else parseEmbedded(subkey, subval, result)
+	}
+	return result
+}
+
+function buildFilters(args) {
 	// FINAL
 	//Direct
 	if (~directTypes.indexOf(typeof args)) {
@@ -53,46 +97,31 @@ function buildFilters(args) {
 
 	for (let key in args) {
 		const val = args[key]
-
-		function checkForKeywords(kw) {
-			for (let k in kw) {
-				if (val[k]) return true
-			}
-			return false
-		}
-
-		const isFilterLogic = ~Object.keys(keywords.logic).indexOf(key)
-		const isFilterCompare = checkForKeywords(keywords.compare)
-		const isFilterValue = checkForKeywords(keywords.value) || ~directTypes.indexOf(typeof val)
-
+		const t = argType(key, val)
 		// LOGICAL
-		if (isFilterLogic && Array.isArray(val)) {
+		if (t === 'LOGIC') {
 			const kw = keywords.logic
 			for (let k in kw) {
-				if (key === k) filters[kw[k]] = val.map(orArgs => buildFilters(orArgs))
+				if (key === k) filters[kw[k]] = val.map(v => buildFilters(v))
 			}
 		}
 		// COMPARE
-		else if (isFilterCompare) {
+		else if (t === 'COMPARE') {
 			const kw = keywords.compare
 			for (let k in kw) {
-				if (val[k]) {
-					if (Array.isArray(val[k])) {
-						filters[key] = {
-							[kw[k]]: val[k].map(v => buildFilters(v))
-						}
-					} else filters[key] = { [kw[k]]: buildFilters(val[k]) }
+				if (key === k) {
+					if (Array.isArray(val)) filters[kw[k]] = val.map(v => buildFilters(v))
+					else filters[kw[k]] = buildFilters(val)
 				}
 			}
 		}
-		// VALUE
-		else if (isFilterValue) {
-			filters[key] = buildFilters(args[key])
-		}
 		// EMBEDED
-		else if (typeof val === 'object') {
-			isEmbedded = true
+		else if (t === 'EMBEDDED') {
 			filters = { ...filters, ...parseEmbedded(key, val) }
+		}
+		// VALUE or go deeper
+		else {
+			filters[key] = buildFilters(val)
 		}
 	}
 	return filters
