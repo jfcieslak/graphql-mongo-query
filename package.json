@@ -1,8 +1,14 @@
 {
 	"name": "@konfy/graphql-mongo-query",
-	"version": "0.0.0",
+	"version": "0.0.8",
 	"description": "Parse GraphQL Input arguments to MongoDB query filters",
+	"author": "Jan Franciszek Cieślak <jf.cieslak@miastodwa.org>",
+	"private": false,
 	"main": "dist/index.js",
+	"repository": "github:jfcieslak/graphql-mongo-query",
+	"publishConfig": {
+		"access": "public"
+	},
 	"scripts": {
 		"build": "parcel build src/index.ts",
 		"test": "jest",
@@ -16,8 +22,17 @@
 		"typescript": "^3.0.1"
 	},
 	"jest": {
-		"transform": { "^.+\\.tsx?$": "ts-jest" },
+		"transform": {
+			"^.+\\.tsx?$": "ts-jest"
+		},
 		"testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-		"moduleFileExtensions": [ "ts", "tsx", "js", "jsx", "json", "node" ]
+		"moduleFileExtensions": [
+			"ts",
+			"tsx",
+			"js",
+			"jsx",
+			"json",
+			"node"
+		]
 	}
 }

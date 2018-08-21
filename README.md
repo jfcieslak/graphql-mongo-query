@@ -2,7 +2,7 @@
 
 Parse GraphQL Input arguments to MongoDB query filters. For use in GraphQL resolvers.
 
-#### What it does?
+### What does it do?
 
 This small package helps with converting GraphQL `Input` arguments  to MongoDB filters, following a certain convention. It supports:
 
@@ -13,22 +13,25 @@ This small package helps with converting GraphQL `Input` arguments  to MongoDB f
 
 And combinations of the above.
 
-#### Convention:
+### Convention:
 
 By default, this parser assumes a simple structural convention for writing your `Input` arguments, which resembles mongoDB query format as closely as possible:
 
-1.  write mongo keywords like so: 
-     `_OR`  = `$or` |  `_NIN` = `$nin` , etc.
+1.  write mongo keywords like so:
+
+    `_OR`  will parse to: `$or`
+
+	`_NIN` will parse to: `$nin` etc.
 
 2.  Use special keywords for Javascript entities like so:
 
-    `RegExp('epxression', 'i')` = `{_REGEX: 'expression', _FLAG: 'i'}`
+    `{_REGEX: 'expression', _FLAG: 'i'}` will parse to: `RegExp('epxression', 'i')`
 
 3.  Use nested objects for embedded queries, like so:
 
-    `{ nested: { level1: { level2: { _NE: 10 } } } }` = `{ 'nested.level1.level2': { $ne: 10 } }`
+    `{ nested: { level1: { level2: { _NE: 10 } } } }` will parse to: `{ 'nested.level1.level2': { $ne: 10 } }`
 
-#### Usage:
+### Usage:
 
 ```javascript
 import GQLMongoQuery from 'graphql-mongo-query'
@@ -43,11 +46,11 @@ const MongoFilters = parser.buildFilters(arg)
 // {$or: [ { num: 10 }, { date: new Date('2018') } ]}
 ```
 
-#### Options:
+### Options:
 
 `graphql-mongo-query` takes options to customize your keywords and special value entities (like Regex or Dates). All options are optional. they will be merged with defaults.
 
-##### `keywords` (optional)
+#### `keywords` (optional)
 
 Maps the arg keywords to mongo keywords.
 
@@ -59,7 +62,7 @@ Maps the arg keywords to mongo keywords.
 }
 ```
 
-##### `values` (optional)
+#### `values` (optional)
 
 An object of value functions taking `arg` argument. Each function should return a mongoDB valid value.
 
