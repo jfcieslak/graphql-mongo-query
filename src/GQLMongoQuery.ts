@@ -3,7 +3,7 @@ interface Keywords {
 	compare: object
 }
 
-export default class GQLMongoFilters {
+export default class GQLMongoQuery {
 	directTypes: string[]
 	keywords: Keywords
 	values: object

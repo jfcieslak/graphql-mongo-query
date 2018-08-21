@@ -1,4 +1,4 @@
-import GQLMongoFilters from './GQLMongoFilters'
+import GQLMongoQuery from './GQLMongoQuery'
 
 const args = {
 	str1: 'abcd',
@@ -17,6 +17,6 @@ const args = {
 	}
 }
 
-const filters = new GQLMongoFilters().buildFilters(args)
+const filters = new GQLMongoQuery().buildFilters(args)
 
 console.log(filters)
