@@ -8,7 +8,7 @@ export default class GQLMongoQuery {
 	keywords: Keywords
 	values: object
 
-	constructor(keywords, values) {
+	constructor(keywords?, values?) {
 		const defaultKeywords = {
 			logic: { _OR: '$or', _AND: '$and', _NOR: '$nor' },
 			compare: { _NE: '$ne', _IN: '$in', _NIN: '$nin', _ALL: '$all' }

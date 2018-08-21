@@ -1,13 +1,31 @@
 {
-  "name": "graphql-mongo-query",
-  "version": "1.0.0",
-  "description": "tools for building graphQL  resolvers for MongoDB",
-  "main": "src/index.js",
-  "scripts": {
-    "build": "parcel build src/GQLMongoFilters.ts -d dist/index.js"
-  },
-  "devDependencies": {
-    "parcel": "1.9.7"
-  },
-  "keywords": []
+	"name": "graphql-mongo-query",
+	"version": "1.0.0",
+	"description": "tools for building graphQL  resolvers for MongoDB",
+	"main": "src/index.js",
+	"scripts": {
+		"build": "parcel build src/index.ts",
+		"test": "jest --watch"
+	},
+	"devDependencies": {
+		"@types/jest": "^23.3.1",
+		"jest": "^23.5.0",
+		"parcel": "1.9.7",
+		"ts-jest": "^23.1.4",
+		"typescript": "^3.0.1"
+	},
+	"jest": {
+		"transform": {
+			"^.+\\.tsx?$": "ts-jest"
+		},
+		"testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+		"moduleFileExtensions": [
+			"ts",
+			"tsx",
+			"js",
+			"jsx",
+			"json",
+			"node"
+		]
+	}
 }
