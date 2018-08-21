@@ -6,8 +6,8 @@ Parse GraphQL Input arguments to MongoDB query filters. For use in GraphQL resol
 
 This small package helps with converting GraphQL `Input` arguments  to MongoDB filters, following a certain convention. It supports:
 
--   logical queries (`$or` `$and` `$nor`)
--   comparative queries (`$ne` `$in` `$nin` `$all`)
+-   logical queries (`$or` `$and` `$nor`,`$not`,`$all`)
+-   comparative queries (`$ne` `$in` `$nin` `$all`, `$lt`, `$lte`, `$gt`, `$gte`)
 -   Javascript entities like `RegExp` and `Date`
 -   Embedded object queries like: `{"embedded.level1.level2": 10}`
 
@@ -57,8 +57,18 @@ Maps the arg keywords to mongo keywords.
 ```javascript
 // Defaults:
 {
-	logic: { _OR: '$or', _AND: '$and', _NOR: '$nor' },
-	compare: { _NE: '$ne', _IN: '$in', _NIN: '$nin', _ALL: '$all' }
+	_OR: '$or',
+	_AND: '$and',
+	_NOR: '$nor',
+	_ALL: '$all',
+	_IN: '$in',
+	_NIN: '$nin',
+	_EQ: '$eq',
+	_NE: '$ne',
+	_LT: '$lt',
+	_LTE: '$lte',
+	_GT: '$gt',
+	_GTE: '$gte'
 }
 ```
 
@@ -70,10 +80,10 @@ An object of value functions taking `arg` argument. Each function should return 
 // Defaults:
 {
     _EXACT(arg) {
-  		return arg._EXACT
+		return arg._EXACT
     },
     _REGEX(arg) {
-   		return RegExp(arg._REGEX, arg._FLAG)
+		return RegExp(arg._REGEX, arg._FLAG)
     },
 	_FLAG(arg) {
 		if (!arg._REGEX)
@@ -92,3 +102,31 @@ The parser will iterate through args, and when finding a keyword in a given arg,
 
 For examples checkout the [tests](https://github.com/jfcieslak/graphql-mongo-query/blob/master/tests/index.test.ts)
 
+An example of a complex Input filter and it’s parsed value:
+
+```javascript
+// arg received from graphQL input:
+const arg = {
+	_OR: [
+		{ field1: { _NE: 'not me' } },
+		{ field2: { _IN: ['A', 'B'] } }
+	],
+	nested: { level1: { level2: { _NE: 10 } } },
+	dateField: { date: { _DATE: '2018-02-20' } }
+}
+
+// Parsed filter:
+const filter = new GQLMongoQuery().buildFilters(arg)
+expect(filter).toEqual({
+	$or: [
+		{ field1: { $ne: 'not me' } },
+		{ field2: { $in: ['A', 'B'] } }
+	],
+	'nested.level1.level2': { $ne: 10 },
+	dateField: { date: new Date('2018-02-20') }
+})
+```
+
+### Todo:
+
+-   GeoJSON queries

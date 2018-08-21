@@ -1,17 +1,22 @@
-interface Keywords {
-	logic: object
-	compare: object
-}
-
 export default class GQLMongoQuery {
 	directTypes: string[]
-	keywords: Keywords
+	keywords: object
 	values: object
 
 	constructor(keywords?, values?) {
 		const defaultKeywords = {
-			logic: { _OR: '$or', _AND: '$and', _NOR: '$nor' },
-			compare: { _NE: '$ne', _IN: '$in', _NIN: '$nin', _ALL: '$all' }
+			_OR: '$or',
+			_AND: '$and',
+			_NOR: '$nor',
+			_ALL: '$all',
+			_IN: '$in',
+			_NIN: '$nin',
+			_EQ: '$eq',
+			_NE: '$ne',
+			_LT: '$lt',
+			_LTE: '$lte',
+			_GT: '$gt',
+			_GTE: '$gte'
 		}
 		const defaultValues = {
 			_EXACT(args) {
@@ -34,12 +39,8 @@ export default class GQLMongoQuery {
 		this.directTypes = ['string', 'number', 'boolean']
 	}
 
-	private isLogicFilter(key, val) {
-		return ~Object.keys(this.keywords.logic).indexOf(key) && Array.isArray(val)
-	}
-
-	private isCompareFilter(key) {
-		return ~Object.keys(this.keywords.compare).indexOf(key)
+	private isOperator(key) {
+		return ~Object.keys(this.keywords).indexOf(key)
 	}
 
 	private isValue(val) {
@@ -54,15 +55,13 @@ export default class GQLMongoQuery {
 	}
 
 	private argType(key, val) {
-		if (this.isLogicFilter(key, val)) return 'LOGIC'
-		else if (this.isCompareFilter(key)) return 'COMPARE'
+		if (this.isOperator(key)) return 'OPERATOR'
 		else if (this.isValue(val)) return 'VALUE'
 		else if (typeof val === 'object') {
 			let isEmbedded = false
 			for (const k in val) {
 				if (
-					!this.isLogicFilter(k, val[k]) &&
-					!this.isCompareFilter(k) &&
+					!this.isOperator(k) &&
 					!this.isValue(val[k])
 				) {
 					isEmbedded = true
@@ -106,22 +105,15 @@ export default class GQLMongoQuery {
 				}
 			}
 		}
-		// COMPOUND FILTERS
 		let filters = {}
 
 		for (const key in args) {
 			const val = args[key]
 			const t = this.argType(key, val)
-			// LOGICAL FILTER
-			if (t === 'LOGIC') {
-				const kw = this.keywords.logic
-				for (const k in kw) {
-					if (key === k) filters[kw[k]] = val.map(v => this.buildFilters(v))
-				}
-			}
-			// COMPARISON FILTER
-			else if (t === 'COMPARE') {
-				const kw = this.keywords.compare
+	
+			// OPERATORS
+			if (t === 'OPERATOR') {
+				const kw = this.keywords
 				for (const k in kw) {
 					if (key === k) {
 						if (Array.isArray(val))
