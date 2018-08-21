@@ -1,11 +1,12 @@
 {
 	"name": "graphql-mongo-query",
-	"version": "1.0.0",
-	"description": "tools for building graphQL  resolvers for MongoDB",
-	"main": "src/index.js",
+	"version": "0.0.3",
+	"description": "Parse GraphQL Input arguments to MongoDB query filters",
+	"main": "dist/index.js",
 	"scripts": {
 		"build": "parcel build src/index.ts",
-		"test": "jest --watch"
+		"test": "jest",
+		"test-w": "jest --watch"
 	},
 	"devDependencies": {
 		"@types/jest": "^23.3.1",
