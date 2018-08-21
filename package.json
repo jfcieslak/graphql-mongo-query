@@ -1,12 +1,12 @@
 {
-  "name": "graphql-mongo-filters",
-  "version": "1.0.0",
-  "description": "tools for building graphQL  resolvers for MongoDB",
-  "main": "src/index.js",
-  "scripts": {
-      "build": "parcel build src/GQLMongoFilters.ts -d dist/index.js"
-  },
-  "devDependencies": {
-    "parcel": "1.9.7"
-  }
+    "name": "graphql-mongo-filters",
+    "version": "1.0.0",
+    "description": "tools for building graphQL  resolvers for MongoDB",
+    "main": "src/index.js",
+    "scripts": {
+        "build": "parcel build src/GQLMongoFilters.ts"
+    },
+    "devDependencies": {
+        "parcel": "1.9.7"
+    }
 }
