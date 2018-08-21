@@ -35,6 +35,14 @@ describe('Parses GraphQL input arguments to MongoDB query filters', () => {
 		)
 	})
 
+	test('gte', () => {
+		const arg = { num: { _GTE: 100 } }
+		const filter = parser.buildFilters(arg)
+		expect(filter).toEqual(
+			{ num: { $gte: 100 } }
+		)
+	})
+
 	test('Compare: NOT EQUAL', () => {
 		const arg = { compare_ne: { _NE: 'not me' } }
 		const filter = parser.buildFilters(arg)

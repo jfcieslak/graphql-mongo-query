@@ -112,7 +112,7 @@ const arg = {
 		{ field2: { _IN: ['A', 'B'] } }
 	],
 	nested: { level1: { level2: { _NE: 10 } } },
-	dateField: { date: { _DATE: '2018-02-20' } }
+	dateField: { _DATE: '2018-02-20' }
 }
 
 // Parsed filter:
@@ -123,7 +123,7 @@ expect(filter).toEqual({
 		{ field2: { $in: ['A', 'B'] } }
 	],
 	'nested.level1.level2': { $ne: 10 },
-	dateField: { date: new Date('2018-02-20') }
+	dateField: new Date('2018-02-20')
 })
 ```
 
