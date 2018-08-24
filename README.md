@@ -31,6 +31,7 @@ By default, this parser assumes a simple structural convention for writing your 
 
     `{ nested: { level1: { level2: { _NE: 10 } } } }` will parse to: `{ 'nested.level1.level2': { $ne: 10 } }`
 
+
 ### Usage:
 
 ```javascript
