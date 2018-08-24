@@ -7,7 +7,7 @@ Parse GraphQL Input arguments to MongoDB query filters. For use in GraphQL resol
 This small package helps with converting GraphQL `Input` arguments  to MongoDB filters, following a certain convention. It supports:
 
 -   logical queries (`$or` `$and` `$nor`,`$not`,`$all`)
--   comparative queries (`$ne` `$in` `$nin` `$all`, `$lt`, `$lte`, `$gt`, `$gte`)
+-   comparative queries (`$ne` `$in` `$nin`, `$lt`, `$lte`, `$gt`, `$gte`)
 -   Javascript entities like `RegExp` and `Date`
 -   Embedded object queries like: `{"embedded.level1.level2": 10}`
 

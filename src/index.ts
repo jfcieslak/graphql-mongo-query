@@ -1,41 +1,42 @@
+const defaultKeywords = {
+	_OR: '$or',
+	_AND: '$and',
+	_NOR: '$nor',
+	_ALL: '$all',
+	_IN: '$in',
+	_NIN: '$nin',
+	_EQ: '$eq',
+	_NE: '$ne',
+	_LT: '$lt',
+	_LTE: '$lte',
+	_GT: '$gt',
+	_GTE: '$gte'
+}
+const defaultValues = {
+	_EXACT(args) {
+		return args._EXACT
+	},
+	_REGEX(args) {
+		return RegExp(args._REGEX, args._FLAG)
+	},
+	_FLAG(args) {
+		if (!args._REGEX)
+			throw new Error('_FLAG can only be used together with _REGEX filter.')
+		return RegExp(args._REGEX, args._FLAG)
+	},
+	_DATE(args) {
+		return new Date(args._DATE)
+	}
+}
+
 export default class GQLMongoQuery {
 	directTypes: string[]
 	keywords: object
 	values: object
 
-	constructor(keywords?, values?) {
-		const defaultKeywords = {
-			_OR: '$or',
-			_AND: '$and',
-			_NOR: '$nor',
-			_ALL: '$all',
-			_IN: '$in',
-			_NIN: '$nin',
-			_EQ: '$eq',
-			_NE: '$ne',
-			_LT: '$lt',
-			_LTE: '$lte',
-			_GT: '$gt',
-			_GTE: '$gte'
-		}
-		const defaultValues = {
-			_EXACT(args) {
-				return args._EXACT
-			},
-			_REGEX(args) {
-				return RegExp(args._REGEX, args._FLAG)
-			},
-			_FLAG(args) {
-				if (!args._REGEX)
-					throw new Error('_FLAG can only be used together with _REGEX filter.')
-				return RegExp(args._REGEX, args._FLAG)
-			},
-			_DATE(args) {
-				return new Date(args._DATE)
-			}
-		}
-		this.keywords = { ...defaultKeywords, ...keywords }
-		this.values = { ...defaultValues, ...values }
+	constructor(keywords = defaultKeywords, values = defaultValues) {
+		this.keywords = keywords
+		this.values = values
 		this.directTypes = ['string', 'number', 'boolean']
 	}
 
