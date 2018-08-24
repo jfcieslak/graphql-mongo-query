@@ -1,7 +1,7 @@
 {
   "name": "@konfy/graphql-mongo-query",
   "license": "MIT",
-  "version": "0.0.0-development",
+  "version": "0.1.2",
   "description": "Parse GraphQL Input arguments to MongoDB query filters",
   "author": "Jan Franciszek Cieślak <jf.cieslak@miastodwa.org>",
   "private": false,
@@ -14,8 +14,8 @@
     "build": "parcel build src/index.ts",
     "test": "jest",
     "test-w": "jest --watch",
-    "travis-deploy-once": "travis-deploy-once",
-    "semantic-release": "semantic-release"
+    "semantic-release": "semantic-release",
+    "travis-deploy-once": "travis-deploy-once"
   },
   "devDependencies": {
     "@types/jest": "^23.3.1",
@@ -23,8 +23,8 @@
     "parcel": "1.9.7",
     "ts-jest": "^23.1.4",
     "typescript": "^3.0.1",
-    "travis-deploy-once": "^5.0.3",
-    "semantic-release": "^15.9.9"
+    "semantic-release": "^15.9.9",
+    "travis-deploy-once": "^5.0.3"
   },
   "jest": {
     "transform": {

@@ -12,7 +12,7 @@ script:
   - yarn test
   - yarn build
 after_success:
-  - yarn travis-deploy-once "yarn semantic-release"
+  - npm run travis-deploy-once "npm run semantic-release"
 branches:
   except:
     - /^v\d+\.\d+\.\d+$/
