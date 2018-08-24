@@ -85,14 +85,14 @@ An object of value functions taking `arg` argument. Each function should return 
     _REGEX(arg) {
 		return RegExp(arg._REGEX, arg._FLAG)
     },
-	_FLAG(arg) {
-		if (!arg._REGEX)
-			throw new Error('_FLAG can only be used together with _REGEX filter.')
-		return RegExp(arg._REGEX, arg._FLAG)
-	},
-	_DATE(arg) {
-		return new Date(arg._DATE)
-	}
+    _FLAG(arg) {
+	if (!arg._REGEX)
+		throw new Error('_FLAG can only be used together with _REGEX filter.')
+	return RegExp(arg._REGEX, arg._FLAG)
+    },
+    _DATE(arg) {
+	return new Date(arg._DATE)
+    }
 }
 ```
 
