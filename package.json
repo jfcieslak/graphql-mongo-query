@@ -1,7 +1,7 @@
 {
   "name": "@konfy/graphql-mongo-query",
   "license": "MIT",
-  "version": "0.0.0-development",
+  "version": "0.1.2",
   "description": "Parse GraphQL Input arguments to MongoDB query filters",
   "author": "Jan Franciszek Cieślak <jf.cieslak@miastodwa.org>",
   "private": false,
