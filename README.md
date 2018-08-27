@@ -1,5 +1,8 @@
 # graphql-mongo-query
 
+[![Build Status](https://travis-ci.org/jfcieslak/graphql-mongo-query.svg?branch=master)](https://travis-ci.org/jfcieslak/graphql-mongo-query)
+
+
 Parse GraphQL Input arguments to MongoDB query filters. For use in GraphQL resolvers.
 
 ### What does it do?
