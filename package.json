@@ -38,8 +38,5 @@
       "json",
       "node"
     ]
-  },
-  "dependencies": {
-    "@konfy/graphql-mongo-query": "^1.0.0"
   }
 }
