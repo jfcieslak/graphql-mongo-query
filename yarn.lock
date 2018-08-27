@@ -23,15 +23,9 @@
     camelcase "^5.0.0"
     prettier "^1.13.7"
 
-"@konfy/graphql-mongo-query@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@konfy/graphql-mongo-query/-/graphql-mongo-query-1.0.0.tgz#c3a1f2f6a80c9ad59e9bb65388bacadaf6c10556"
-
-"@konfy/graphql-mongo-query@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@konfy/graphql-mongo-query/-/graphql-mongo-query-1.0.1.tgz#0004a451d62d3f715a30e96ad37f1ba622025858"
-  dependencies:
-    "@konfy/graphql-mongo-query" "^1.0.0"
+"@konfy/graphql-mongo-query@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@konfy/graphql-mongo-query/-/graphql-mongo-query-1.0.2.tgz#4459af0ce86208c6b65a708e2722b67c10c292c2"
 
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"

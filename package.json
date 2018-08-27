@@ -1,42 +1,42 @@
 {
-  "name": "@konfy/graphql-mongo-query",
-  "license": "MIT",
-  "description": "Parse GraphQL Input arguments to MongoDB query filters",
-  "author": "Jan Franciszek Cieślak <jf.cieslak@miastodwa.org>",
-  "private": false,
-  "main": "dist/index.js",
-  "repository": "github:jfcieslak/graphql-mongo-query",
-  "publishConfig": {
-    "access": "public"
-  },
-  "scripts": {
-    "build": "parcel build src/index.ts",
-    "test": "jest",
-    "test-w": "jest --watch",
-    "semantic-release": "semantic-release",
-    "travis-deploy-once": "travis-deploy-once"
-  },
-  "devDependencies": {
-    "@types/jest": "^23.3.1",
-    "jest": "^23.5.0",
-    "parcel": "1.9.7",
-    "semantic-release": "^15.9.12",
-    "travis-deploy-once": "^5.0.4",
-    "ts-jest": "^23.1.4",
-    "typescript": "^3.0.1"
-  },
-  "jest": {
-    "transform": {
-      "^.+\\.tsx?$": "ts-jest"
-    },
-    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx",
-      "json",
-      "node"
-    ]
-  }
+	"name": "@konfy/graphql-mongo-query",
+	"license": "MIT",
+	"description": "Parse GraphQL Input arguments to MongoDB query filters",
+	"author": "Jan Franciszek Cieślak <jf.cieslak@miastodwa.org>",
+	"private": false,
+	"main": "dist/index.js",
+	"repository": "github:jfcieslak/graphql-mongo-query",
+	"publishConfig": {
+		"access": "public"
+	},
+	"scripts": {
+		"build": "parcel build src/index.ts",
+		"test": "jest",
+		"test-w": "jest --watch",
+		"semantic-release": "semantic-release",
+		"travis-deploy-once": "travis-deploy-once"
+	},
+	"devDependencies": {
+		"@types/jest": "^23.3.1",
+		"jest": "^23.5.0",
+		"parcel": "1.9.7",
+		"semantic-release": "^15.9.12",
+		"travis-deploy-once": "^5.0.4",
+		"ts-jest": "^23.1.4",
+		"typescript": "^3.0.1"
+	},
+	"jest": {
+		"transform": {
+			"^.+\\.tsx?$": "ts-jest"
+		},
+		"testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+		"moduleFileExtensions": [
+			"ts",
+			"tsx",
+			"js",
+			"jsx",
+			"json",
+			"node"
+		]
+	}
 }
