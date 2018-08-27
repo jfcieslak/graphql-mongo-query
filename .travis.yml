@@ -12,7 +12,7 @@ jobs:
     include:
         - 
             stage: build
-            script: npx build
+            script: yarn build
             node_js: lts/*
         -
             stage: release
@@ -20,7 +20,7 @@ jobs:
             deploy:
                 provider: script
                 skip_cleanup: true
-                script: npx semantic-releaseafter_success
+                script: yarn semantic-release
 branches:
     except:
         - /^v\d+\.\d+\.\d+$/
