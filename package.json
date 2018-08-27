@@ -13,7 +13,7 @@
     "build": "parcel build src/index.ts",
     "test": "jest",
     "test-w": "jest --watch",
-    "semantic-release": "yarn build && semantic-release",
+    "semantic-release": "semantic-release",
     "travis-deploy-once": "travis-deploy-once"
   },
   "devDependencies": {
