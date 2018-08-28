@@ -1,4 +1,6 @@
-import GMQ from '../src'
+// import GQLMongoQuery from '../src'
+
+import GMQ from '../dist'
 
 const parser = new GMQ()
 

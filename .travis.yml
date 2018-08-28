@@ -1,15 +1,25 @@
 language: node_js
 cache:
-  directories:
-    - ~/.npm
+    directories:
+        - ~/.npm
 notifications:
-  email: false
-node_js:
-  - '10'
-  - '9'
-  - '8'
-after_success:
-  - travis-deploy-once "npm run semantic-release"
-branches:
-  except:
-    - /^v\d+\.\d+\.\d+$/
+    email: false
+node_js: lts/*
+before_install:
+    - yarn global add greenkeeper-lockfile@1
+jobs:
+    include:
+        -
+            stage: test
+            script:
+                - yarn test index
+            before_script: greenkeeper-lockfile-update
+            after_script: greenkeeper-lockfile-upload
+            after_success: yarn codecov
+        -
+            stage: deploy
+            if: branch = master
+            script:
+                - yarn build
+                - yarn test dist
+            after_success: travis-deploy-once "yarn semantic-release"
