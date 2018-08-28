@@ -1,7 +1,7 @@
 {
-	"name": "@konfy/travis-npm",
+	"name": "@konfy/graphql-mongo-query",
 	"license": "MIT",
-	"description": "travis - npm pipeline with builds",
+	"description": "Parse GraphQL Input arguments to MongoDB query filters",
 	"author": "Jan Franciszek Cieślak <jf.cieslak@miastodwa.org>",
 	"private": false,
 	"main": "dist/index.js",
