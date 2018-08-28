@@ -9,7 +9,7 @@ node_js:
   - '9'
   - '8'
 after_success:
-  - travis-deploy-once "yarn build && yarn semantic-release"
+  - travis-deploy-once "npm run semantic-release"
 branches:
   except:
     - /^v\d+\.\d+\.\d+$/
