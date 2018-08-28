@@ -10,7 +10,15 @@ const defaultKeywords = {
 	_LT: '$lt',
 	_LTE: '$lte',
 	_GT: '$gt',
-	_GTE: '$gte'
+	_GTE: '$gte',
+	// geo queries operators:
+	_GEO_INTERSECTS: '$geoIntersects',
+	_GEO_WITHIN: '$geoWithin',
+	// geo shapes operators:
+	_BOX: '$box',
+	_POLYGON: '$polygon',
+	_CENTER: '$center',
+	_CENTERSPHERE: '$centerSphere'
 }
 const defaultValues = {
 	_EXACT(args) {
@@ -52,13 +60,12 @@ export default class GQLMongoQuery {
 				if (~Object.keys(this.values).indexOf(k)) isValue = true
 			}
 			return isValue
-		} else return false
+		}
+		else return false
 	}
 
-	private argType(key, val) {
-		if (this.isOperator(key)) return 'OPERATOR'
-		else if (this.isValue(val)) return 'VALUE'
-		else if (typeof val === 'object') {
+	private isEmbeded(val) {
+		if (typeof val === 'object') {
 			let isEmbedded = false
 			for (const k in val) {
 				if (
@@ -69,9 +76,16 @@ export default class GQLMongoQuery {
 					break
 				}
 			}
-			if (isEmbedded) return 'EMBEDDED'
-			else return null
-		} else return null
+			return isEmbedded
+		}
+		else return false	
+	}
+
+	private argType(key, val) {
+		if (this.isOperator(key)) return 'OPERATOR'
+		else if (this.isValue(val)) return 'VALUE'
+		else if (this.isEmbeded(val)) return 'EMBEDDED'
+		else return null
 	}
 
 	private parseEmbedded(key, val, lastResult = {}) {
