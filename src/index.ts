@@ -14,11 +14,15 @@ const defaultKeywords = {
 	// geo queries operators:
 	_GEO_INTERSECTS: '$geoIntersects',
 	_GEO_WITHIN: '$geoWithin',
+	_NEAR: '$near',
 	// geo shapes operators:
+	_GEOMETRY: '$geometry',
 	_BOX: '$box',
 	_POLYGON: '$polygon',
 	_CENTER: '$center',
-	_CENTERSPHERE: '$centerSphere'
+	_CENTER_SPHERE: '$centerSphere',
+	_MAX_DISTANCE: '$maxDistance',
+	_MIN_DISTANCE: '$minDistance'
 }
 const defaultValues = {
 	_EXACT(args) {
@@ -60,25 +64,20 @@ export default class GQLMongoQuery {
 				if (~Object.keys(this.values).indexOf(k)) isValue = true
 			}
 			return isValue
-		}
-		else return false
+		} else return false
 	}
 
 	private isEmbeded(val) {
 		if (typeof val === 'object') {
 			let isEmbedded = false
 			for (const k in val) {
-				if (
-					!this.isOperator(k) &&
-					!this.isValue(val[k])
-				) {
+				if (!this.isOperator(k) && !this.isValue(val[k])) {
 					isEmbedded = true
 					break
 				}
 			}
 			return isEmbedded
-		}
-		else return false	
+		} else return false
 	}
 
 	private argType(key, val) {
@@ -120,14 +119,15 @@ export default class GQLMongoQuery {
 				}
 			}
 		}
-		let filters = {}
+		let filters
 
 		for (const key in args) {
 			const val = args[key]
 			const t = this.argType(key, val)
-	
+
 			// OPERATORS
 			if (t === 'OPERATOR') {
+				filters = {}
 				const kw = this.keywords
 				for (const k in kw) {
 					if (key === k) {
@@ -141,9 +141,16 @@ export default class GQLMongoQuery {
 			else if (t === 'EMBEDDED') {
 				filters = { ...filters, ...this.parseEmbedded(key, val) }
 			}
-			// go deeper
+			// Else: go deeper
 			else {
-				filters[key] = this.buildFilters(val)
+				if (Array.isArray(args)) {
+					if (!filters) filters = []
+					filters = [...filters, this.buildFilters(val)]
+				}
+				else {
+					if (!filters) filters = {}
+					filters[key] = this.buildFilters(val)
+				}
 			}
 		}
 		return filters

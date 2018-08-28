@@ -62,9 +62,11 @@ Maps the arg keywords to mongo keywords.
 ```javascript
 // Defaults:
 {
+	// logical operators:
 	_OR: '$or',
 	_AND: '$and',
 	_NOR: '$nor',
+	// comparison operators:
 	_ALL: '$all',
 	_IN: '$in',
 	_NIN: '$nin',
@@ -73,7 +75,19 @@ Maps the arg keywords to mongo keywords.
 	_LT: '$lt',
 	_LTE: '$lte',
 	_GT: '$gt',
-	_GTE: '$gte'
+	_GTE: '$gte',
+	// geo queries operators:
+	_GEO_INTERSECTS: '$geoIntersects',
+	_GEO_WITHIN: '$geoWithin',
+	_NEAR: '$near',
+	// geo shapes operators:
+	_GEOMETRY: '$geometry',
+	_BOX: '$box',
+	_POLYGON: '$polygon',
+	_CENTER: '$center',
+	_CENTER_SPHERE: '$centerSphere',
+	_MAX_DISTANCE: '$maxDistance',
+	_MIN_DISTANCE: '$minDistance'
 }
 ```
 
@@ -131,7 +145,3 @@ expect(filter).toEqual({
 	dateField: new Date('2018-02-20')
 })
 ```
-
-### Todo:
-
--   GeoJSON queries
