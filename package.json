@@ -11,7 +11,7 @@
 	},
 	"scripts": {
         "codecov": "codecov",
-        "build": "parcel build src/index.ts",
+        "build": "tsc",
         "test": "jest",
         "test-w": "jest --watch",
         "semantic-release": "semantic-release",
