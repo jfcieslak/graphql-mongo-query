@@ -29,7 +29,7 @@ By default, this parser assumes a simple structural convention for writing your 
 
 2.  Use special keywords for Javascript entities like so:
 
-    `{_REGEX: 'expression', _FLAG: 'i'}` will parse to: `RegExp('epxression', 'i')`
+    `{_REGEX: {exp: 'expression', flag: 'i'}}` will parse to: `RegExp('epxression', 'i')`
 
 3.  Use nested objects for embedded queries, like so:
 
@@ -98,24 +98,20 @@ An object of value functions taking `arg` argument. Each function should return 
 ```javascript
 // Defaults:
 {
-    _EXACT(arg) {
-		return arg._EXACT
-    },
-    _REGEX(arg) {
-		return RegExp(arg._REGEX, arg._FLAG)
-    },
-    _FLAG(arg) {
-	if (!arg._REGEX)
-		throw new Error('_FLAG can only be used together with _REGEX filter.')
-	return RegExp(arg._REGEX, arg._FLAG)
-    },
-    _DATE(arg) {
-	return new Date(arg._DATE)
-    }
+	_EXACT(args) {
+		return args._EXACT
+	},
+	_REGEX(args) {
+		if (!args._REGEX.exp) throw new Error('_REGEX object must contain exp property')
+		return RegExp(args._REGEX.exp, args._REGEX.flag)
+	},
+	_DATE(args) {
+		return new Date(args._DATE)
+	}
 }
 ```
 
-The parser will iterate through args, and when finding a keyword in a given arg, it will convert the entire arg  according to the function. Note that the order matters, so if the parser will find `_REGEX` key, it will convert the arg into a `RegExp` without further scanning it for other keywords.
+The parser will iterate through args, and when finding a keyword in a given arg, it will convert the entire arg  according to the function. Note that the order matters, so if the parser will find `_REGEX` key, it will convert that arg into a `RegExp` without further scanning for other keywords.
 
 #### Examples
 

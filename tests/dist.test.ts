@@ -26,7 +26,7 @@ describe('Parses GraphQL input arguments to MongoDB query filters', () => {
 	})
 
 	test('Regex with flags', () => {
-		const arg = { regex: { _REGEX: '^fuzzy', _FLAG: 'i' } }
+		const arg = { regex: { _REGEX: { exp: '^fuzzy', flag: 'i' } } }
 		const filter = parser.buildFilters(arg)
 		expect(filter).toEqual({ regex: RegExp('^fuzzy', 'i') })
 	})
@@ -44,13 +44,13 @@ describe('Parses GraphQL input arguments to MongoDB query filters', () => {
 	})
 
 	test('Compare: NOT EQUAL REGEX', () => {
-		const arg = { compare_ne_regex: { _NE: { _REGEX: 'fuzzy$', _FLAG: 'i' } } }
+		const arg = { compare_ne_regex: { _NE: { _REGEX: { exp: 'fuzzy$', flag: 'i' } } } }
 		const filter = parser.buildFilters(arg)
 		expect(filter).toEqual({ compare_ne_regex: { $ne: RegExp('fuzzy$', 'i') } })
 	})
 
 	test('Compare: IN ARRAY', () => {
-		const arg = { compare_in: { _IN: ['option A', 10, { _REGEX: 'fuzzy' }] } }
+		const arg = { compare_in: { _IN: ['option A', 10, { _REGEX: { exp: 'fuzzy' } }] } }
 		const filter = parser.buildFilters(arg)
 		expect(filter).toEqual({ compare_in: { $in: ['option A', 10, RegExp('fuzzy')] } })
 	})

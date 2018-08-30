@@ -15,6 +15,7 @@ const defaultKeywords = {
 	_GEO_INTERSECTS: '$geoIntersects',
 	_GEO_WITHIN: '$geoWithin',
 	_NEAR: '$near',
+	_NEAR_SPHERE: '$nearSphere',
 	// geo shapes operators:
 	_GEOMETRY: '$geometry',
 	_BOX: '$box',
@@ -29,12 +30,8 @@ const defaultValues = {
 		return args._EXACT
 	},
 	_REGEX(args) {
-		return RegExp(args._REGEX, args._FLAG)
-	},
-	_FLAG(args) {
-		if (!args._REGEX)
-			throw new Error('_FLAG can only be used together with _REGEX filter.')
-		return RegExp(args._REGEX, args._FLAG)
+		if (!args._REGEX.exp) throw new Error('_REGEX object must contain exp property')
+		return RegExp(args._REGEX.exp, args._REGEX.flag)
 	},
 	_DATE(args) {
 		return new Date(args._DATE)
