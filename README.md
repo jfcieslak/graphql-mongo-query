@@ -1,5 +1,7 @@
 # graphql-mongo-query
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/jfcieslak/graphql-mongo-query.svg)](https://greenkeeper.io/)
+
 ![Build Status](https://travis-ci.org/jfcieslak/graphql-mongo-query.svg?branch=master)
 
 ![npm](https://img.shields.io/npm/v/@konfy/graphql-mongo-query.svg)
