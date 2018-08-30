@@ -53,6 +53,12 @@ describe('Parses GraphQL input arguments to MongoDB query filters', () => {
 		expect(filter).toEqual({ compare_in: { $in: ['option A', 10, RegExp('fuzzy')] } })
 	})
 
+	test('Compare: multiple comparisons', () => {
+		const arg = { both: { _IN: [0, 1], _NIN: [5, 6] } }
+		const filter = parser.buildFilters(arg)
+		expect(filter).toEqual({ both: { $in: [0, 1], $nin: [5, 6] } })
+	})
+
 	test('Nested Object', () => {
 		const arg = { nested: { level1: { level2: { _NE: 10 } } } }
 		const filter = parser.buildFilters(arg)

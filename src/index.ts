@@ -50,15 +50,15 @@ export default class GQLMongoQuery {
 	}
 
 	private isOperator(key) {
-		return ~Object.keys(this.keywords).indexOf(key)
+		return Object.keys(this.keywords).includes(key)
 	}
 
 	private isValue(val) {
-		if (~this.directTypes.indexOf(typeof val)) return true
+		if (this.directTypes.includes(typeof val)) return true
 		else if (typeof val === 'object') {
 			let isValue = false
 			for (const k in val) {
-				if (~Object.keys(this.values).indexOf(k)) isValue = true
+				if (Object.keys(this.values).includes(k)) isValue = true
 			}
 			return isValue
 		} else return false
@@ -105,7 +105,7 @@ export default class GQLMongoQuery {
 
 	buildFilters(args) {
 		// DIRECT VALUES
-		if (~this.directTypes.indexOf(typeof args)) {
+		if (this.directTypes.includes(typeof args)) {
 			return args
 		}
 		// COMPUTED VALUES
@@ -124,7 +124,7 @@ export default class GQLMongoQuery {
 
 			// OPERATORS
 			if (t === 'OPERATOR') {
-				filters = {}
+				if (!filters) filters = {}
 				const kw = this.keywords
 				for (const k in kw) {
 					if (key === k) {
