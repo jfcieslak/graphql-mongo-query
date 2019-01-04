@@ -1,4 +1,4 @@
-const defaultKeywords = {
+const defaultKeywords: object = {
 	_OR: '$or',
 	_AND: '$and',
 	_NOR: '$nor',
@@ -25,7 +25,7 @@ const defaultKeywords = {
 	_MAX_DISTANCE: '$maxDistance',
 	_MIN_DISTANCE: '$minDistance'
 }
-const defaultValues = {
+const defaultValues: object = {
 	_EXACT(args) {
 		return args._EXACT
 	},
@@ -43,9 +43,13 @@ export default class GQLMongoQuery {
 	keywords: object
 	values: object
 
-	constructor(keywords = defaultKeywords, values = defaultValues) {
-		this.keywords = keywords
-		this.values = values
+	constructor(
+		keywords: object = defaultKeywords,
+		values: object = defaultValues,
+		merge: boolean = true
+	) {
+		this.keywords = merge ? { ...defaultKeywords, ...keywords } : keywords
+		this.values = merge ? { ...defaultValues, ...values } : values
 		this.directTypes = ['string', 'number', 'boolean']
 	}
 
@@ -55,13 +59,22 @@ export default class GQLMongoQuery {
 
 	private isValue(val) {
 		if (this.directTypes.includes(typeof val)) return true
-		else if (typeof val === 'object') {
-			let isValue = false
-			for (const k in val) {
-				if (Object.keys(this.values).includes(k)) isValue = true
-			}
-			return isValue
-		} else return false
+		else if (typeof val === 'object') return this.isComputableValue(val)
+		else return false
+	}
+
+	private isComputableValue(val) {
+		let isValue = false
+		for (const k in val) {
+			if (Object.keys(this.values).includes(k)) isValue = true
+		}
+		return isValue
+	}
+
+	private computedValue(args) {
+		for (const valueKey in this.values) {
+			if (args[valueKey]) return this.values[valueKey](args)
+		}
 	}
 
 	private isEmbeded(val) {
@@ -77,7 +90,7 @@ export default class GQLMongoQuery {
 		} else return false
 	}
 
-	private argType(key, val) {
+	private argType(key?, val?) {
 		if (this.isOperator(key)) return 'OPERATOR'
 		else if (this.isValue(val)) return 'VALUE'
 		else if (this.isEmbeded(val)) return 'EMBEDDED'
@@ -85,7 +98,7 @@ export default class GQLMongoQuery {
 	}
 
 	private parseEmbedded(key, val, lastResult = {}) {
-		const result = lastResult
+		let result = lastResult
 		for (const k in val) {
 			const subkey = key + '.' + k
 			const subval = val[k]
@@ -97,7 +110,12 @@ export default class GQLMongoQuery {
 					break
 				}
 			}
-			if (isFinal) result[subkey] = this.buildFilters(subval)
+			if (isFinal) {
+				result[subkey] = this.buildFilters(subval)
+				if (this.isComputableValue(result)) {
+					result = {...result, ...this.computedValue(result)}
+				}
+			}
 			else this.parseEmbedded(subkey, subval, result)
 		}
 		return result
@@ -110,12 +128,9 @@ export default class GQLMongoQuery {
 		}
 		// COMPUTED VALUES
 		else if (this.isValue(args)) {
-			for (const valueKey in this.values) {
-				if (args[valueKey]) {
-					return this.values[valueKey](args)
-				}
-			}
+			return this.computedValue(args)
 		}
+
 		let filters
 
 		for (const key in args) {

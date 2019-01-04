@@ -1,5 +1,3 @@
-// import GQLMongoQuery from '../src'
-
 import GMQ from '../dist'
 
 const parser = new GMQ()
@@ -50,7 +48,7 @@ describe('Parses GraphQL input arguments to MongoDB query filters', () => {
 	})
 
 	test('Compare: IN ARRAY', () => {
-		const arg = { compare_in: { _IN: ['option A', 10, { _REGEX: { exp: 'fuzzy' } }] } }
+		const arg = { compare_in: { _IN: ['option A', 10, { _REGEX: { exp: 'fuzzy'} }] } }
 		const filter = parser.buildFilters(arg)
 		expect(filter).toEqual({ compare_in: { $in: ['option A', 10, RegExp('fuzzy')] } })
 	})
