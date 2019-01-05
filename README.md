@@ -2,11 +2,11 @@
 
 [![Greenkeeper badge](https://badges.greenkeeper.io/jfcieslak/graphql-mongo-query.svg)](https://greenkeeper.io/)
 ![Build Status](https://travis-ci.org/jfcieslak/graphql-mongo-query.svg?branch=master)
-![npm](https://img.shields.io/npm/v/@konfy/graphql-mongo-query.svg)
+[![npm](https://img.shields.io/npm/v/@konfy/graphql-mongo-query.svg)](https://www.npmjs.com/package/@konfy/graphql-mongo-query)
 
 Parse GraphQL Input arguments to MongoDB query filters. For use in GraphQL resolvers.
 
-### What does it do?
+## What does it do?
 
 This small package helps with converting GraphQL `Input` arguments  to MongoDB filters, following a certain convention. It supports:
 
@@ -17,7 +17,7 @@ This small package helps with converting GraphQL `Input` arguments  to MongoDB f
 
 And combinations of the above.
 
-### Convention:
+## Convention:
 
 By default, this parser assumes a simple structural convention for writing your `Input` arguments, which resembles mongoDB query format as closely as possible:
 
@@ -36,24 +36,24 @@ By default, this parser assumes a simple structural convention for writing your 
     `{ nested: { level1: { level2: { _NE: 10 } } } }` will parse to: `{ 'nested.level1.level2': { $ne: 10 } }`
 
 
-### Usage:
+## Usage:
 
 ```javascript
 import GQLMongoQuery from 'graphql-mongo-query'
-const parser = new GQLMongoQuery(<keywords?>, <values?>)
+const parser = new GQLMongoQuery(<keywords?>, <values?>, <merge?>)
 
 // Example arguments:
 const args = { _OR: [{ num: 10 }, { date: { _DATE: '2018' } }] }
 
 const MongoFilters = parser.buildFilters(arg)
 
-// Will result in:
+// MongoFilters will equal to:
 // {$or: [ { num: 10 }, { date: new Date('2018') } ]}
 ```
 
-### Options:
+## Options:
 
-`graphql-mongo-query` takes options to customize your keywords and special value entities (like Regex or Dates). All options are optional. they will be merged with defaults.
+`graphql-mongo-query` takes options to customize your keywords and special value entities (like Regex or Dates). All options are optional. By default, they will be merged with defaults.
 
 #### `keywords` (optional)
 
@@ -98,22 +98,25 @@ An object of value functions taking `arg` argument. Each function should return 
 ```javascript
 // Defaults:
 {
-	_EXACT(args) {
-		return args._EXACT
+	_EXACT(parent) {
+		return parent._EXACT
 	},
-	_REGEX(args) {
-		if (!args._REGEX.exp) throw new Error('_REGEX object must contain exp property')
-		return RegExp(args._REGEX.exp, args._REGEX.flag)
+	_REGEX(parent) {
+		if (!parent._REGEX.exp) throw new Error('_REGEX object must contain exp property')
+		return RegExp(parent._REGEX.exp, parent._REGEX.flag)
 	},
-	_DATE(args) {
-		return new Date(args._DATE)
+	_DATE(parent) {
+		return new Date(parent._DATE)
 	}
 }
 ```
-
 The parser will iterate through args, and when finding a keyword in a given arg, it will convert the entire arg  according to the function. Note that the order matters, so if the parser will find `_REGEX` key, it will convert that arg into a `RegExp` without further scanning for other keywords.
 
-#### Examples
+#### `merge` (optional, default: `true`)
+
+If set to true, `keywords` and `values` from options will be merged with defaults. Otherwise they will overwrite the defaults.
+
+## Examples:
 
 For examples checkout the [tests](https://github.com/jfcieslak/graphql-mongo-query/blob/master/tests/index.test.ts)
 

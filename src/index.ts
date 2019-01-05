@@ -26,15 +26,15 @@ const defaultKeywords: object = {
 	_MIN_DISTANCE: '$minDistance'
 }
 const defaultValues: object = {
-	_EXACT(args) {
-		return args._EXACT
+	_EXACT(parent) {
+		return parent._EXACT
 	},
-	_REGEX(args) {
-		if (!args._REGEX.exp) throw new Error('_REGEX object must contain exp property')
-		return RegExp(args._REGEX.exp, args._REGEX.flag)
+	_REGEX(parent) {
+		if (!parent._REGEX.exp) throw new Error('_REGEX object must contain exp property')
+		return RegExp(parent._REGEX.exp, parent._REGEX.flag)
 	},
-	_DATE(args) {
-		return new Date(args._DATE)
+	_DATE(parent) {
+		return new Date(parent._DATE)
 	}
 }
 
