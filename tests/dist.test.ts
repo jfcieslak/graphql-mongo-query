@@ -48,7 +48,7 @@ describe('Parses GraphQL input arguments to MongoDB query filters', () => {
 	})
 
 	test('Compare: IN ARRAY', () => {
-		const arg = { compare_in: { _IN: ['option A', 10, { _REGEX: { exp: 'fuzzy'} }] } }
+		const arg = { compare_in: { _IN: ['option A', 10, { _REGEX: { exp: 'fuzzy' } }] } }
 		const filter = parser.buildFilters(arg)
 		expect(filter).toEqual({ compare_in: { $in: ['option A', 10, RegExp('fuzzy')] } })
 	})
@@ -96,6 +96,34 @@ describe('Parses GraphQL input arguments to MongoDB query filters', () => {
 				}
 			},
 			type: 'Building'
+		})
+	})
+
+	test('Nested computed values', () => {
+		const values = {
+			'nest.x'(parent) {
+				const vals: number[] = parent['nest.x']
+				const sum: number = vals.reduce((a, b) => a + b, 0)
+				delete parent['nest.x']
+				parent._nest = sum
+				return parent
+			},
+			'nest2.o'(parent) {
+				return parent
+			}
+		}
+		const arg = {
+			nest: { x: [1, 2, 3] },
+			nest2: { o: { a: { b: 1 } } },
+			deep: { nest: { x: 1 }, },
+			_OR: [{ nest: { x: [1, 2] } }, { a: 1 }]
+		}
+		const filter = new GMQ(null, values).buildFilters(arg)
+		expect(filter).toEqual({
+			_nest: 6,
+			'nest2.o': { a: { b: 1 } },
+			'deep.nest.x': 1,
+			$or: [{ _nest: 3 }, { a: 1 }]
 		})
 	})
 })

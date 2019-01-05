@@ -59,29 +59,22 @@ export default class GQLMongoQuery {
 
 	private isValue(val) {
 		if (this.directTypes.includes(typeof val)) return true
-		else if (typeof val === 'object') return this.isComputableValue(val)
 		else return false
 	}
 
 	private isComputableValue(val) {
-		let isValue = false
+		let isComputableValue = false
 		for (const k in val) {
-			if (Object.keys(this.values).includes(k)) isValue = true
+			if (Object.keys(this.values).includes(k)) isComputableValue = true
 		}
-		return isValue
-	}
-
-	private computedValue(args) {
-		for (const valueKey in this.values) {
-			if (args[valueKey]) return this.values[valueKey](args)
-		}
+		return isComputableValue
 	}
 
 	private isEmbeded(val) {
 		if (typeof val === 'object') {
 			let isEmbedded = false
 			for (const k in val) {
-				if (!this.isOperator(k) && !this.isValue(val[k])) {
+				if (!this.isOperator(k) && !this.isValue(val[k]) && !this.isComputableValue(val[k])) {
 					isEmbedded = true
 					break
 				}
@@ -90,54 +83,72 @@ export default class GQLMongoQuery {
 		} else return false
 	}
 
+	private computedValue(args) {
+		for (const valueKey in this.values) {
+			if (args[valueKey]) return this.values[valueKey](args)
+		}
+	}
+
 	private argType(key?, val?) {
 		if (this.isOperator(key)) return 'OPERATOR'
 		else if (this.isValue(val)) return 'VALUE'
-		else if (this.isEmbeded(val)) return 'EMBEDDED'
+		else if (this.isComputableValue(val)) return 'COMPUTED'
+		else if (this.isEmbeded(val)) return 'NESTED'
+		else if (typeof val === 'object') return 'FLAT'
 		else return null
 	}
 
-	private parseEmbedded(key, val, lastResult = {}) {
+	private parseNested(key, val, lastResult = {}) {
 		let result = lastResult
+
 		for (const k in val) {
 			const subkey = key + '.' + k
 			const subval = val[k]
+
 			let isFinal = false
-			for (const sk in subval) {
+
+			// subval is COMPUTABLE VALUE
+			if (this.isComputableValue({ [subkey]: subval })) isFinal = true
+			
+			// subval is a DIRECT VALUE
+			if (this.isValue(subval)) isFinal = true
+
+			// subval is NESTED
+			else for (const sk in subval) {
 				const t = this.argType(sk, subval)
-				if (t !== 'EMBEDDED') {
-					isFinal = true
-					break
-				}
+				if (t !== 'NESTED' && t !== 'FLAT') isFinal = true; break
 			}
+			
 			if (isFinal) {
 				result[subkey] = this.buildFilters(subval)
 				if (this.isComputableValue(result)) {
-					result = {...result, ...this.computedValue(result)}
+					result = { ...result, ...this.computedValue(result) }
+					return result
 				}
 			}
-			else this.parseEmbedded(subkey, subval, result)
+			else this.parseNested(subkey, subval, result)
 		}
 		return result
 	}
 
 	buildFilters(args) {
-		// DIRECT VALUES
-		if (this.directTypes.includes(typeof args)) {
+		// DIRECT VALUE
+		if (this.isValue(args)) {
 			return args
 		}
-		// COMPUTED VALUES
-		else if (this.isValue(args)) {
+		// COMPUTED VALUE
+		else if (this.isComputableValue(args)) {
 			return this.computedValue(args)
 		}
 
+		// ELSE, go deeper
 		let filters
 
 		for (const key in args) {
 			const val = args[key]
 			const t = this.argType(key, val)
 
-			// OPERATORS
+			// OPERATOR
 			if (t === 'OPERATOR') {
 				if (!filters) filters = {}
 				const kw = this.keywords
@@ -149,20 +160,19 @@ export default class GQLMongoQuery {
 					}
 				}
 			}
-			// EMBEDED QUERY
-			else if (t === 'EMBEDDED') {
-				filters = { ...filters, ...this.parseEmbedded(key, val) }
+			// NESTED QUERY
+			else if (t === 'NESTED') {
+				filters = { ...filters, ...this.parseNested(key, val) }
 			}
-			// Else: go deeper
+			// ARRAY
+			else if (Array.isArray(args)) {
+				if (!filters) filters = []
+				filters = [...filters, this.buildFilters(val)]
+			}
+			// ELSE
 			else {
-				if (Array.isArray(args)) {
-					if (!filters) filters = []
-					filters = [...filters, this.buildFilters(val)]
-				}
-				else {
-					if (!filters) filters = {}
-					filters[key] = this.buildFilters(val)
-				}
+				if (!filters) filters = {}
+				filters[key] = this.buildFilters(val)
 			}
 		}
 		return filters
