@@ -15,8 +15,8 @@
 	"scripts": {
         "codecov": "codecov",
         "build": "tsc",
-        "test": "jest",
-        "test-w": "jest --watch",
+        "test": "jest index",
+        "test-w": "jest index --watch",
         "semantic-release": "semantic-release",
         "travis-deploy-once": "travis-deploy-once"
 	},

@@ -115,15 +115,17 @@ describe('Parses GraphQL input arguments to MongoDB query filters', () => {
 		const arg = {
 			nest: { x: [1, 2, 3] },
 			nest2: { o: { a: { b: 1 } } },
+			nest3: { o: { _IN: [1, 5] } },
 			deep: { nest: { x: 1 }, },
-			_OR: [{ nest: { x: [1, 2] }}, {a: 1} ]
+			_OR: [{ nest: { x: [1, 2] } }, { a: 1 }]
 		}
 		const filter = new GMQ(null, values).buildFilters(arg)
 		expect(filter).toEqual({
 			_nest: 6,
 			'nest2.o': { a: { b: 1 } },
+			'nest3.o': { $in: [1, 5] },
 			'deep.nest.x': 1,
-			$or: [{_nest: 3}, {a: 1}]
+			$or: [{ _nest: 3 }, { a: 1 }]
 		})
 	})
 })
