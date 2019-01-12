@@ -99,7 +99,7 @@ describe('Parses GraphQL input arguments to MongoDB query filters', () => {
 		})
 	})
 
-	test('Single depth computed value', () => {
+	test('Flat computed values', () => {
 		const values = {
 			test(parent) {
 				parent.test = true
