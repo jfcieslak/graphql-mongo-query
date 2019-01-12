@@ -110,7 +110,7 @@ describe('Parses GraphQL input arguments to MongoDB query filters', () => {
 				return parent
 			}
 		}
-		const arg = { test: 'dicks!', test2: false }
+		const arg = { test: 'something', test2: false }
 
 		const filter = new GMQ(null, values).buildFilters(arg)
 		expect(filter).toEqual(
