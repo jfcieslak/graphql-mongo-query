@@ -99,8 +99,31 @@ describe('Parses GraphQL input arguments to MongoDB query filters', () => {
 		})
 	})
 
+	test('Single depth computed value', () => {
+		const values = {
+			test(parent) {
+				parent.test = true
+				return parent
+			},
+			test2(parent) {
+				parent.test2 = true
+				return parent
+			}
+		}
+		const arg = { test: 'dicks!', test2: false }
+
+		const filter = new GMQ(null, values).buildFilters(arg)
+		expect(filter).toEqual(
+			{ test: true, test2: true }
+		)
+	})
+
 	test('Nested computed values', () => {
 		const values = {
+			flat(parent) {
+				parent.flat = 'ok'
+				return parent
+			},
 			'nest.x'(parent) {
 				const vals: number[] = parent['nest.x']
 				const sum: number = vals.reduce((a, b) => a + b, 0)
@@ -113,14 +136,16 @@ describe('Parses GraphQL input arguments to MongoDB query filters', () => {
 			}
 		}
 		const arg = {
+			flat: 'stuff',
 			nest: { x: [1, 2, 3] },
 			nest2: { o: { a: { b: 1 } } },
 			nest3: { o: { _IN: [1, 5] } },
 			deep: { nest: { x: 1 }, },
-			_OR: [{ nest: { x: [1, 2] } }, { a: 1 }]
+			_OR: [{ nest: { x: [1, 2] } }, { a: 1 }],
 		}
 		const filter = new GMQ(null, values).buildFilters(arg)
 		expect(filter).toEqual({
+			flat: 'ok',
 			_nest: 6,
 			'nest2.o': { a: { b: 1 } },
 			'nest3.o': { $in: [1, 5] },

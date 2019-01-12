@@ -53,24 +53,23 @@ export default class GQLMongoQuery {
 		this.directTypes = ['string', 'number', 'boolean']
 	}
 
-	private isOperator(key) {
+	private isOperator(key): boolean {
 		return Object.keys(this.keywords).includes(key)
 	}
 
-	private isValue(val) {
+	private isValue(val): boolean {
 		if (this.directTypes.includes(typeof val)) return true
 		else return false
 	}
 
-	private isComputableValue(val) {
-		let isComputableValue = false
-		for (const k in val) {
-			if (Object.keys(this.values).includes(k)) isComputableValue = true
-		}
-		return isComputableValue
+	private isComputableValue(val): boolean {
+		if (typeof val !== 'object') return false
+		const valKeys = Object.keys(val)
+		if (valKeys.length > 1) return false
+		if (Object.keys(this.values).includes(valKeys[0])) return true
 	}
 
-	private isEmbeded(val) {
+	private isEmbeded(val): boolean {
 		if (typeof val === 'object') {
 			let isEmbedded = false
 			for (const k in val) {
@@ -85,7 +84,9 @@ export default class GQLMongoQuery {
 
 	private computedValue(args) {
 		for (const valueKey in this.values) {
-			if (args[valueKey]) return this.values[valueKey](args)
+			if (args[valueKey] !== undefined) {
+				return this.values[valueKey](args)
+			}
 		}
 	}
 
@@ -132,6 +133,7 @@ export default class GQLMongoQuery {
 	}
 
 	buildFilters(args) {
+
 		// DIRECT VALUE
 		if (this.isValue(args)) {
 			return args
@@ -148,8 +150,13 @@ export default class GQLMongoQuery {
 			const val = args[key]
 			const t = this.argType(key, val)
 
+			// COMPUTED VALUE
+			if (this.isComputableValue({ [key]: val })) {
+				filters = { ...filters, ...this.computedValue({ [key]: val }) }
+				console.log(filters)
+			}
 			// OPERATOR
-			if (t === 'OPERATOR') {
+			else if (t === 'OPERATOR') {
 				if (!filters) filters = {}
 				const kw = this.keywords
 				for (const k in kw) {

@@ -16,7 +16,8 @@
         "codecov": "codecov",
         "build": "tsc",
         "test": "jest index",
-        "test-w": "jest index --watch",
+        "test:debug": "jest debug --watch",
+        "test:watch": "jest index --watch",
         "semantic-release": "semantic-release",
         "travis-deploy-once": "travis-deploy-once"
 	},
