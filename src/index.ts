@@ -153,7 +153,6 @@ export default class GQLMongoQuery {
 			// COMPUTED VALUE
 			if (this.isComputableValue({ [key]: val })) {
 				filters = { ...filters, ...this.computedValue({ [key]: val }) }
-				console.log(filters)
 			}
 			// OPERATOR
 			else if (t === 'OPERATOR') {
