@@ -25,18 +25,7 @@ const defaultKeywords: object = {
 	_MAX_DISTANCE: '$maxDistance',
 	_MIN_DISTANCE: '$minDistance'
 }
-const defaultValues: object = {
-	_EXACT(parent) {
-		return parent._EXACT
-	},
-	_REGEX(parent) {
-		if (!parent._REGEX.exp) throw new Error('_REGEX object must contain exp property')
-		return RegExp(parent._REGEX.exp, parent._REGEX.flag)
-	},
-	_DATE(parent) {
-		return new Date(parent._DATE)
-	}
-}
+const defaultValues: object = {}
 
 export default class GQLMongoQuery {
 	directTypes: string[]
@@ -62,18 +51,15 @@ export default class GQLMongoQuery {
 		else return false
 	}
 
-	private isComputableValue(val): boolean {
-		if (typeof val !== 'object') return false
-		const valKeys = Object.keys(val)
-		if (valKeys.length > 1) return false
-		if (Object.keys(this.values).includes(valKeys[0])) return true
+	private isComputableValue(key): boolean {
+		return Object.keys(this.values).includes(key)
 	}
 
-	private isNested(val): boolean {
-		if (typeof val !== 'object') return false
+	private isNested(obj): boolean {
+		if (typeof obj !== 'object') return false
 		let isNested = false
-		for (const k in val) {
-			if (!this.isOperator(k) && !this.isValue(val[k]) && !this.isComputableValue(val)) {
+		for (const k in obj) {
+			if (!this.isOperator(k) && !this.isValue(obj[k]) && !this.isComputableValue(k)) {
 				isNested = true
 				break
 			}
@@ -91,93 +77,113 @@ export default class GQLMongoQuery {
 
 	private argType(key?, val?) {
 		if (this.isOperator(key)) return 'OPERATOR'
+		else if (this.isComputableValue(key)) return 'COMPUTED'
 		else if (this.isValue(val)) return 'VALUE'
-		else if (this.isComputableValue(val)) return 'COMPUTED'
+		else if ( Array.isArray(val) ) return 'ARRAY'
 		else if (this.isNested(val)) return 'NESTED'
 		else if (typeof val === 'object') return 'FLAT'
 		else return null
 	}
 
 	private parseNested(key, val, lastResult = {}) {
+
+		if (this.isComputableValue(key)) {
+			return this.buildFilters(val, key)
+		}
 		let result = lastResult
 
 		for (const k in val) {
+			let isFinal = false
+
+			// COMPUTABLE VALUE
+			if (this.isComputableValue(k)) {
+				result = { ...result, ...this.buildFilters(val[k], k) }
+				return result
+			}
+
+			// OPERATOR
+			if (this.isOperator(k)) {
+				result = { ...result, [key]: this.buildFilters(val, key) }
+				return result
+			}
+
 			const subkey = key + '.' + k
 			const subval = val[k]
 
-			let isFinal = false
-
 			// subval is COMPUTABLE VALUE
-			if (this.isComputableValue({ [subkey]: subval })) isFinal = true
-			
+			if (this.isComputableValue(subkey)) {
+				result = { ...result, ...this.buildFilters(subval, subkey) }
+				isFinal = true
+			}
+
 			// subval is a DIRECT VALUE
-			if (this.isValue(subval)) isFinal = true
+			else if (this.isValue(subval)) {
+				result[subkey] = this.buildFilters(subval)
+				isFinal = true
+			}
 
 			// subval is NESTED
 			else for (const sk in subval) {
 				const t = this.argType(sk, subval)
-				if (t !== 'NESTED' && t !== 'FLAT') isFinal = true; break
-			}
-			
-			if (isFinal) {
-				result[subkey] = this.buildFilters(subval)
-				if (this.isComputableValue(result)) {
-					result = { ...result, ...this.computedValue(result) }
-					return result
+				if (t !== 'NESTED' && t !== 'FLAT') {
+					result[subkey] = this.buildFilters(subval)
+					isFinal = true
+					break
 				}
 			}
-			else this.parseNested(subkey, subval, result)
+			if (!isFinal) this.parseNested(subkey, subval, result)
 		}
 		return result
 	}
 
-	buildFilters(args) {
+	buildFilters(args, parentKey?) {
 
-		// DIRECT VALUE
-		if (this.isValue(args)) {
+		// PARENT IS A COMPUTABLE VALUE
+		if (this.isComputableValue(parentKey)) {
+			return this.computedValue({ [parentKey]: args })
+		}
+
+		// NO PARENT AND ARGS IS A DIRECT VALUE
+		if (!parentKey && this.isValue(args)) {
 			return args
 		}
-		// COMPUTED VALUE
-		else if (this.isComputableValue(args)) {
-			return this.computedValue(args)
-		}
 
-		// ELSE, go deeper
+		// ELSE, ARGS MUST BE ON OBJECT. LET'S ITERATE:
 		let filters
 
 		for (const key in args) {
 
+			if (!filters) filters = {}
 			const val = args[key]
 			const t = this.argType(key, val)
 
 			// COMPUTED VALUE
-			if (this.isComputableValue({ [key]: val })) {
-				filters = { ...filters, ...this.computedValue({ [key]: val }) }
+			if (this.isComputableValue(key)) {
+				const computed = this.buildFilters(val, key)
+				filters = {
+					...filters, ...computed
+				}
 			}
 			// OPERATOR
 			else if (t === 'OPERATOR') {
-				if (!filters) filters = {}
-				const kw = this.keywords
-				for (const k in kw) {
-					if (key === k) {
-						if (Array.isArray(val))
-							filters[kw[k]] = val.map(v => this.buildFilters(v))
-						else filters[kw[k]] = this.buildFilters(val)
-					}
+				const keyword = this.keywords[key]
+				if (Array.isArray(val)) {
+					filters[keyword] = val.map(val => this.buildFilters(val))
+				}
+				else {
+					filters[keyword] = this.buildFilters(val)
 				}
 			}
 			// NESTED QUERY
-			else if (t === 'NESTED') {
+			else if (t === 'NESTED' || t === 'FLAT') {
 				filters = { ...filters, ...this.parseNested(key, val) }
 			}
 			// ARRAY
-			else if (Array.isArray(args)) {
-				if (!filters) filters = []
-				filters = [...filters, this.buildFilters(val)]
+			else if (t === 'ARRAY') {
+				filters[key] = val.map(val => this.buildFilters(val))
 			}
 			// ELSE
 			else {
-				if (!filters) filters = {}
 				filters[key] = this.buildFilters(val)
 			}
 		}
