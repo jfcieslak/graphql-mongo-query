@@ -150,8 +150,6 @@ export default class GQLMongoQuery {
 			const val = args[key]
 			const t = this.argType(key, val)
 
-			console.log('CHECKING KEY:', key, t)
-
 			// COMPUTED VALUE
 			if (this.isComputableValue({ [key]: val })) {
 				filters = { ...filters, ...this.computedValue({ [key]: val }) }

@@ -69,13 +69,13 @@ describe('Parses GraphQL input arguments to MongoDB query filters', () => {
 		const arg = {
 			_OR: [{ field1: { _NE: 'not me' } }, { field2: { _IN: ['A', 'B'] } }],
 			nested: { level1: { level2: { _NE: 10 } } },
-			dateField: { date: { _DATE: '2018-02-20' } }
+			dateField: { _DATE: '2018-02-20' }
 		}
 		const filter = parser.buildFilters(arg)
 		expect(filter).toEqual({
 			$or: [{ field1: { $ne: 'not me' } }, { field2: { $in: ['A', 'B'] } }],
 			'nested.level1.level2': { $ne: 10 },
-			dateField: { date: new Date('2018-02-20') }
+			dateField: new Date('2018-02-20')
 		})
 	})
 
@@ -99,8 +99,31 @@ describe('Parses GraphQL input arguments to MongoDB query filters', () => {
 		})
 	})
 
+	test('Flat computed values', () => {
+		const values = {
+			test(parent) {
+				parent.test = true
+				return parent
+			},
+			test2(parent) {
+				parent.test2 = true
+				return parent
+			}
+		}
+		const arg = { test: 'something', test2: false }
+
+		const filter = new GMQ(null, values).buildFilters(arg)
+		expect(filter).toEqual(
+			{ test: true, test2: true }
+		)
+	})
+
 	test('Nested computed values', () => {
 		const values = {
+			flat(parent) {
+				parent.flat = 'ok'
+				return parent
+			},
 			'nest.x'(parent) {
 				const vals: number[] = parent['nest.x']
 				const sum: number = vals.reduce((a, b) => a + b, 0)
@@ -113,15 +136,19 @@ describe('Parses GraphQL input arguments to MongoDB query filters', () => {
 			}
 		}
 		const arg = {
+			flat: 'stuff',
 			nest: { x: [1, 2, 3] },
 			nest2: { o: { a: { b: 1 } } },
+			nest3: { o: { _IN: [1, 5] } },
 			deep: { nest: { x: 1 }, },
-			_OR: [{ nest: { x: [1, 2] } }, { a: 1 }]
+			_OR: [{ nest: { x: [1, 2] } }, { a: 1 }],
 		}
 		const filter = new GMQ(null, values).buildFilters(arg)
 		expect(filter).toEqual({
+			flat: 'ok',
 			_nest: 6,
 			'nest2.o': { a: { b: 1 } },
+			'nest3.o': { $in: [1, 5] },
 			'deep.nest.x': 1,
 			$or: [{ _nest: 3 }, { a: 1 }]
 		})
