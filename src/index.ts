@@ -69,17 +69,16 @@ export default class GQLMongoQuery {
 		if (Object.keys(this.values).includes(valKeys[0])) return true
 	}
 
-	private isEmbeded(val): boolean {
-		if (typeof val === 'object') {
-			let isEmbedded = false
-			for (const k in val) {
-				if (!this.isOperator(k) && !this.isValue(val[k]) && !this.isComputableValue(val[k])) {
-					isEmbedded = true
-					break
-				}
+	private isNested(val): boolean {
+		if (typeof val !== 'object') return false
+		let isNested = false
+		for (const k in val) {
+			if (!this.isOperator(k) && !this.isValue(val[k]) && !this.isComputableValue(val)) {
+				isNested = true
+				break
 			}
-			return isEmbedded
-		} else return false
+		}
+		return isNested
 	}
 
 	private computedValue(args) {
@@ -94,7 +93,7 @@ export default class GQLMongoQuery {
 		if (this.isOperator(key)) return 'OPERATOR'
 		else if (this.isValue(val)) return 'VALUE'
 		else if (this.isComputableValue(val)) return 'COMPUTED'
-		else if (this.isEmbeded(val)) return 'NESTED'
+		else if (this.isNested(val)) return 'NESTED'
 		else if (typeof val === 'object') return 'FLAT'
 		else return null
 	}
@@ -147,8 +146,11 @@ export default class GQLMongoQuery {
 		let filters
 
 		for (const key in args) {
+
 			const val = args[key]
 			const t = this.argType(key, val)
+
+			console.log('CHECKING KEY:', key, t)
 
 			// COMPUTED VALUE
 			if (this.isComputableValue({ [key]: val })) {
