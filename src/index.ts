@@ -168,7 +168,7 @@ export default class GQLMongoQuery {
 			else if (t === 'OPERATOR') {
 				const keyword = this.keywords[key]
 				if (Array.isArray(val)) {
-					filters[keyword] = val.map(val => this.buildFilters(val))
+					filters[keyword] = val.map(v => this.buildFilters(v))
 				}
 				else {
 					filters[keyword] = this.buildFilters(val)
@@ -180,7 +180,7 @@ export default class GQLMongoQuery {
 			}
 			// ARRAY
 			else if (t === 'ARRAY') {
-				filters[key] = val.map(val => this.buildFilters(val))
+				filters[key] = val.map(v => this.buildFilters(v))
 			}
 			// ELSE
 			else {

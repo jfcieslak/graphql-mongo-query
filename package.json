@@ -7,24 +7,25 @@
 	"main": "dist/index.js",
 	"repository": "github:jfcieslak/graphql-mongo-query",
 	"keywords": [
-		"graphql", "mongodb"
+		"graphql",
+		"mongodb"
 	],
 	"publishConfig": {
 		"access": "public"
 	},
 	"scripts": {
-        "codecov": "codecov",
-        "build": "tsc",
-        "test": "jest index",
-        "test:debug": "jest debug --watch",
-        "test:watch": "jest index --watch",
-        "semantic-release": "semantic-release",
-        "travis-deploy-once": "travis-deploy-once"
+		"codecov": "codecov",
+		"build": "tsc",
+		"test": "jest index",
+		"test:debug": "jest debug --watch",
+		"test:watch": "jest index --watch",
+		"semantic-release": "semantic-release",
+		"travis-deploy-once": "travis-deploy-once"
 	},
 	"devDependencies": {
 		"@types/jest": "^24.0.0",
-        "codecov": "^3.0.4",
-		"jest": "^23.5.0",
+		"codecov": "^3.0.4",
+		"jest": "^24.5.0",
 		"semantic-release": "^15.9.12",
 		"travis-deploy-once": "^5.0.4",
 		"ts-jest": "^24.0.0",
