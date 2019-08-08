@@ -1,7 +1,5 @@
 import GMQ from '../src'
 
-const parser = new GMQ()
-
 test('Flat computed values', () => {
 	const values = {
 		test1(parent) {
