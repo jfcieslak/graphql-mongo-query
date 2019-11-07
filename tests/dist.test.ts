@@ -1,8 +1,7 @@
-import parseQuery from '../dist'
-import {ValueParser, Values} from '../src/types'
+import parseQuery, { Values } from '../dist'
 
 const values: Values = {
-    test1(parent): ValueParser {
+    test1(parent) {
         parent.test1 = true
         return parent
     },

@@ -1,5 +1,4 @@
-import parseQuery from '../src/'
-import {Values} from '../src/types'
+import parseQuery, { Values } from '../src/'
 
 const values: Values = {
 	test1(parent) {
