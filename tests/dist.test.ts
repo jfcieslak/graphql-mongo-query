@@ -1,4 +1,4 @@
-import parseQuery from '../src/'
+import parseQuery from '../dist'
 import {ValueParser, Values} from '../src/types'
 
 const values: Values = {
