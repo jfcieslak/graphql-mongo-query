@@ -1,5 +1,5 @@
 {
-	"name": "@konfy/graphql-mongo-query",
+	"name": "@jfcieslak/graphql-mongo-query",
 	"license": "MIT",
 	"description": "Parse GraphQL Input arguments to MongoDB query filters",
 	"author": "Jan Franciszek Cieślak <jf.cieslak@miastodwa.org>",
@@ -11,7 +11,6 @@
 		"mongodb"
 	],
 	"publishConfig": {
-		"registry": "https://npm.pkg.github.com/",
 		"access": "public"
 	},
 	"scripts": {
