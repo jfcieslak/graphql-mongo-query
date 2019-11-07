@@ -27,8 +27,17 @@ const defaultKeywords: object = {
 }
 const defaultValues: object = {}
 
+const primitives = [
+	'string',
+	'number',
+	'boolean',
+	'bigint',
+	'undefined',
+	'null',
+	'symbol'
+]
+
 export default class GQLMongoQuery {
-	directTypes: string[]
 	keywords: object
 	values: object
 
@@ -39,15 +48,14 @@ export default class GQLMongoQuery {
 	) {
 		this.keywords = merge ? { ...defaultKeywords, ...keywords } : keywords
 		this.values = merge ? { ...defaultValues, ...values } : values
-		this.directTypes = ['string', 'number', 'boolean']
 	}
 
 	private isOperator(key): boolean {
 		return Object.keys(this.keywords).includes(key)
 	}
 
-	private isValue(val): boolean {
-		if (this.directTypes.includes(typeof val)) return true
+	private isPrimitive(val): boolean {
+		if (primitives.includes(typeof val)) return true
 		else return false
 	}
 
@@ -59,7 +67,7 @@ export default class GQLMongoQuery {
 		if (typeof obj !== 'object') return false
 		let isNested = false
 		for (const k in obj) {
-			if (!this.isOperator(k) && !this.isValue(obj[k]) && !this.isComputableValue(k)) {
+			if (!this.isOperator(k) && !this.isPrimitive(obj[k]) && !this.isComputableValue(k)) {
 				isNested = true
 				break
 			}
@@ -78,7 +86,7 @@ export default class GQLMongoQuery {
 	private argType(key?, val?) {
 		if (this.isOperator(key)) return 'OPERATOR'
 		else if (this.isComputableValue(key)) return 'COMPUTED'
-		else if (this.isValue(val)) return 'VALUE'
+		else if (this.isPrimitive(val)) return 'VALUE'
 		else if ( Array.isArray(val) ) return 'ARRAY'
 		else if (this.isNested(val)) return 'NESTED'
 		else if (typeof val === 'object') return 'FLAT'
@@ -117,7 +125,7 @@ export default class GQLMongoQuery {
 			}
 
 			// subval is a DIRECT VALUE
-			else if (this.isValue(subval)) {
+			else if (this.isPrimitive(subval)) {
 				result[subkey] = this.buildFilters(subval)
 				isFinal = true
 			}
@@ -144,7 +152,7 @@ export default class GQLMongoQuery {
 		}
 
 		// NO PARENT AND ARGS IS A DIRECT VALUE
-		if (!parentKey && this.isValue(args)) {
+		if (!parentKey && this.isPrimitive(args)) {
 			return args
 		}
 

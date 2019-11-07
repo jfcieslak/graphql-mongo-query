@@ -14,11 +14,9 @@
 		"access": "public"
 	},
 	"scripts": {
-		"codecov": "codecov",
 		"build": "tsc",
-		"test": "jest index",
-		"test:debug": "jest debug --watch",
-		"test:watch": "jest index --watch",
+		"test": "jest",
+		"test:watch": "jest --watch",
 		"semantic-release": "semantic-release",
 		"travis-deploy-once": "travis-deploy-once"
 	},
