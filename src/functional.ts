@@ -1,4 +1,6 @@
-const defaultKeywords: object = {
+import { ArgType, Values, Keywords} from './types'
+
+const defaultKeywords: Keywords = {
 	_OR: '$or',
 	_AND: '$and',
 	_NOR: '$nor',
@@ -25,7 +27,7 @@ const defaultKeywords: object = {
 	_MAX_DISTANCE: '$maxDistance',
 	_MIN_DISTANCE: '$minDistance'
 }
-const defaultValues: object = {}
+const defaultValues: Values = {}
 
 const primitives = ['string', 'number', 'boolean', 'bigint', 'undefined', 'null', 'symbol']
 
@@ -38,7 +40,7 @@ const isPrimitive = (val): boolean => {
     else return false
 }
 
-const isComputableValue = (key: string, values: object): boolean => {
+const isComputable = (key: string, values: object): boolean => {
     return Object.keys(values).includes(key)
 }
 
@@ -48,7 +50,7 @@ const isNested = (value, keywords: object, values: object): boolean => {
     for (const key in value) {
         if (!isOperator(key, keywords)
             && !isPrimitive(value[key])
-            && !isComputableValue(key, values)
+            && !isComputable(key, values)
         ) {
             nested = true
             break
@@ -57,87 +59,94 @@ const isNested = (value, keywords: object, values: object): boolean => {
     return nested
 }
 
-const computedValue = (args: object, values: object) => {
+const computedValue = (parent: object, values: object) => {
     for (const valueKey in values) {
-        if (args[valueKey] !== undefined) {
-            return values[valueKey](args)
+        if (parent[valueKey] !== undefined) {
+            return values[valueKey](parent)
         }
     }
 }
 
-const argType = (keywords: object, values: object, key?: string, val?: string) => {
-    if (isOperator(key, keywords)) return 'OPERATOR'
-    else if (isComputableValue(key, values)) return 'COMPUTED'
-    else if (isPrimitive(val)) return 'VALUE'
-    else if ( Array.isArray(val) ) return 'ARRAY'
-    else if (isNested(val, keywords, values)) return 'NESTED'
-    else if (typeof val === 'object') return 'FLAT'
-    else return null
+const argType = (
+	keywords: object,
+	values: object,
+	key?: string,
+	val?: string
+): ArgType => {
+	if (isOperator(key, keywords)) return 'OPERATOR'
+	else if (isComputable(key, values)) return 'COMPUTED'
+	else if (isPrimitive(val)) return 'VALUE'
+	else if (Array.isArray(val)) return 'ARRAY'
+	else if (isNested(val, keywords, values)) return 'NESTED'
+	else if (typeof val === 'object') return 'FLAT'
+	else return null
 }
 
-const parseNested = (keywords: object, values: object, key: string, val, lastResult = {}) => {
+const parseNested = (
+	keywords: Keywords,
+	values: Values,
+	key: string,
+	val,
+	lastResult = {}
+) => {
+	if (isComputable(key, values)) {
+		return buildFilters(val, key, keywords, values)
+	}
+	let result = lastResult
 
-    if (isComputableValue(key, values)) {
-        return buildFilters(val, key, keywords, values)
-    }
-    let result = lastResult
+	for (const k in val) {
+		let isFinal = false
 
-    for (const k in val) {
-        let isFinal = false
+		// COMPUTABLE VALUE
+		if (isComputable(k, values)) {
+			result = { ...result, ...buildFilters(val[k], k, keywords, values) }
+			return result
+		}
 
-        // COMPUTABLE VALUE
-        if (isComputableValue(k, values)) {
-            result = { ...result, ...buildFilters(val[k], k, keywords, values) }
-            return result
-        }
+		// OPERATOR
+		if (isOperator(k, keywords)) {
+			result = { ...result, [key]: buildFilters(val, key, keywords, values) }
+			return result
+		}
 
-        // OPERATOR
-        if (isOperator(k, keywords)) {
-            result = { ...result, [key]: buildFilters(val, key, keywords, values) }
-            return result
-        }
+		const subkey = key + '.' + k
+		const subval = val[k]
 
-        const subkey = key + '.' + k
-        const subval = val[k]
+		// subval is COMPUTABLE VALUE
+		if (isComputable(subkey, values)) {
+			result = { ...result, ...buildFilters(subval, subkey, keywords, values) }
+			isFinal = true
+		}
 
-        // subval is COMPUTABLE VALUE
-        if (isComputableValue(subkey, values)) {
-            result = { ...result, ...buildFilters(subval, subkey, keywords, values) }
-            isFinal = true
-        }
+		// subval is a DIRECT VALUE
+		else if (isPrimitive(subval)) {
+			result[subkey] = buildFilters(subval, null, keywords, values)
+			isFinal = true
+		}
 
-        // subval is a DIRECT VALUE
-        else if (isPrimitive(subval)) {
-            result[subkey] = buildFilters(subval, null, keywords, values)
-            isFinal = true
-        }
-
-        // subval is NESTED
-        else for (const sk in subval) {
-            const t = argType(keywords, values, sk, subval)
-            if (t !== 'NESTED' && t !== 'FLAT') {
-                result[subkey] = buildFilters(subval, null, keywords, values)
-                isFinal = true
-                break
-            }
-        }
-        if (!isFinal) parseNested(keywords, values, subkey, subval, result)
-    }
-    return result
+		// subval is NESTED
+		else
+			for (const sk in subval) {
+				const t = argType(keywords, values, sk, subval)
+				if (t !== 'NESTED' && t !== 'FLAT') {
+					result[subkey] = buildFilters(subval, null, keywords, values)
+					isFinal = true
+					break
+				}
+			}
+		if (!isFinal) parseNested(keywords, values, subkey, subval, result)
+	}
+	return result
 }
 
-const buildFilters = (
+export const buildFilters = (
 	args,
 	parentKey?: string,
-	customKeywords: object = {},
-	customValues: object = {},
-	merge: boolean = true,
+	keywords: Keywords = {},
+	values: Values = {}
 ) => {
-	const keywords: object = merge ? { ...defaultKeywords, ...customKeywords } : customKeywords
-	const values: object = merge ? { ...defaultValues, ...customValues } : customValues
-
 	// PARENT IS A COMPUTABLE VALUE
-	if (isComputableValue(parentKey, values)) {
+	if (isComputable(parentKey, values)) {
 		return computedValue({ [parentKey]: args }, values)
 	}
 
@@ -155,7 +164,7 @@ const buildFilters = (
 		const t = argType(keywords, values, key, val)
 
 		// COMPUTED VALUE
-		if (isComputableValue(key, values)) {
+		if (isComputable(key, values)) {
 			const computed = buildFilters(val, key, keywords, values)
 			filters = {
 				...filters,
@@ -187,4 +196,14 @@ const buildFilters = (
 	return filters
 }
 
-export default buildFilters
+export default (
+	customKeywords: Keywords = {},
+	customValues: Values = {},
+	merge: boolean = true
+) => {
+	const keywords: Keywords = merge
+		? { ...defaultKeywords, ...customKeywords }
+		: customKeywords
+	const values: Values = merge ? { ...defaultValues, ...customValues } : customValues
+	return (args: object): object => buildFilters(args, null, keywords, values)
+}

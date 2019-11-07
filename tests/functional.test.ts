@@ -1,7 +1,8 @@
-import buildFilters from '../src/functional'
+import parseQuery from '../src/functional'
+import {ValueParser, Values} from '../src/types'
 
-const values = {
-    test1(parent) {
+const values: Values = {
+    test1(parent): ValueParser {
         parent.test1 = true
         return parent
     },
@@ -44,7 +45,8 @@ const args = {
 }
 
 test('functional', () => {
-	const filter = buildFilters(args, null, null, values)
+    const parser = parseQuery(null, values)
+	const filter = parser(args)
 	expect(filter).toEqual({
 		test1: true,
 		logical: { $or: [1, 2] },

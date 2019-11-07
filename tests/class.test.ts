@@ -1,4 +1,4 @@
-import GMQ from '../src'
+import GMQ from '../src/class'
 
 test('Flat computed values', () => {
 	const values = {

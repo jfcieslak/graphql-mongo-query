@@ -1,4 +1,6 @@
-const defaultKeywords: object = {
+import { ArgType, Values, Keywords } from './types'
+
+const defaultKeywords: Keywords = {
 	_OR: '$or',
 	_AND: '$and',
 	_NOR: '$nor',
@@ -25,7 +27,7 @@ const defaultKeywords: object = {
 	_MAX_DISTANCE: '$maxDistance',
 	_MIN_DISTANCE: '$minDistance'
 }
-const defaultValues: object = {}
+const defaultValues: Values = {}
 
 const primitives = [
 	'string',
@@ -38,12 +40,12 @@ const primitives = [
 ]
 
 export default class GQLMongoQuery {
-	keywords: object
-	values: object
+	keywords: Keywords
+	values: Values
 
 	constructor(
-		keywords: object = defaultKeywords,
-		values: object = defaultValues,
+		keywords: Keywords = defaultKeywords,
+		values: Values = defaultValues,
 		merge: boolean = true
 	) {
 		this.keywords = merge ? { ...defaultKeywords, ...keywords } : keywords
@@ -59,7 +61,7 @@ export default class GQLMongoQuery {
 		else return false
 	}
 
-	private isComputableValue(key): boolean {
+	private isComputable(key): boolean {
 		return Object.keys(this.values).includes(key)
 	}
 
@@ -67,7 +69,7 @@ export default class GQLMongoQuery {
 		if (typeof obj !== 'object') return false
 		let isNested = false
 		for (const k in obj) {
-			if (!this.isOperator(k) && !this.isPrimitive(obj[k]) && !this.isComputableValue(k)) {
+			if (!this.isOperator(k) && !this.isPrimitive(obj[k]) && !this.isComputable(k)) {
 				isNested = true
 				break
 			}
@@ -83,9 +85,9 @@ export default class GQLMongoQuery {
 		}
 	}
 
-	private argType(key?, val?) {
+	private argType(key?, val?): ArgType {
 		if (this.isOperator(key)) return 'OPERATOR'
-		else if (this.isComputableValue(key)) return 'COMPUTED'
+		else if (this.isComputable(key)) return 'COMPUTED'
 		else if (this.isPrimitive(val)) return 'VALUE'
 		else if ( Array.isArray(val) ) return 'ARRAY'
 		else if (this.isNested(val)) return 'NESTED'
@@ -95,7 +97,7 @@ export default class GQLMongoQuery {
 
 	private parseNested(key, val, lastResult = {}) {
 
-		if (this.isComputableValue(key)) {
+		if (this.isComputable(key)) {
 			return this.buildFilters(val, key)
 		}
 		let result = lastResult
@@ -104,7 +106,7 @@ export default class GQLMongoQuery {
 			let isFinal = false
 
 			// COMPUTABLE VALUE
-			if (this.isComputableValue(k)) {
+			if (this.isComputable(k)) {
 				result = { ...result, ...this.buildFilters(val[k], k) }
 				return result
 			}
@@ -119,7 +121,7 @@ export default class GQLMongoQuery {
 			const subval = val[k]
 
 			// subval is COMPUTABLE VALUE
-			if (this.isComputableValue(subkey)) {
+			if (this.isComputable(subkey)) {
 				result = { ...result, ...this.buildFilters(subval, subkey) }
 				isFinal = true
 			}
@@ -147,7 +149,7 @@ export default class GQLMongoQuery {
 	buildFilters(args, parentKey?) {
 
 		// PARENT IS A COMPUTABLE VALUE
-		if (this.isComputableValue(parentKey)) {
+		if (this.isComputable(parentKey)) {
 			return this.computedValue({ [parentKey]: args })
 		}
 
@@ -166,7 +168,7 @@ export default class GQLMongoQuery {
 			const t = this.argType(key, val)
 
 			// COMPUTED VALUE
-			if (this.isComputableValue(key)) {
+			if (this.isComputable(key)) {
 				const computed = this.buildFilters(val, key)
 				filters = {
 					...filters, ...computed
