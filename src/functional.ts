@@ -75,7 +75,7 @@ const argType = (
 ): ArgType => {
 	if (isOperator(key, keywords)) return 'OPERATOR'
 	else if (isComputable(key, values)) return 'COMPUTED'
-	else if (isPrimitive(val)) return 'VALUE'
+	else if (isPrimitive(val)) return 'PRIMITIVE'
 	else if (Array.isArray(val)) return 'ARRAY'
 	else if (isNested(val, keywords, values)) return 'NESTED'
 	else if (typeof val === 'object') return 'FLAT'
@@ -125,15 +125,16 @@ const parseNested = (
 		}
 
 		// subval is NESTED
-		else
-			for (const sk in subval) {
-				const t = argType(keywords, values, sk, subval)
-				if (t !== 'NESTED' && t !== 'FLAT') {
-					result[subkey] = buildFilters(subval, null, keywords, values)
-					isFinal = true
-					break
-				}
-			}
+        else {
+            for (const sk in subval) {
+                const t = argType(keywords, values, sk, subval)
+                if (t !== 'NESTED' && t !== 'FLAT') {
+                    result[subkey] = buildFilters(subval, null, keywords, values)
+                    isFinal = true
+                    break
+                }
+            }
+        }
 		if (!isFinal) parseNested(keywords, values, subkey, subval, result)
 	}
 	return result

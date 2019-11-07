@@ -88,7 +88,7 @@ export default class GQLMongoQuery {
 	private argType(key?, val?): ArgType {
 		if (this.isOperator(key)) return 'OPERATOR'
 		else if (this.isComputable(key)) return 'COMPUTED'
-		else if (this.isPrimitive(val)) return 'VALUE'
+		else if (this.isPrimitive(val)) return 'PRIMITIVE'
 		else if ( Array.isArray(val) ) return 'ARRAY'
 		else if (this.isNested(val)) return 'NESTED'
 		else if (typeof val === 'object') return 'FLAT'

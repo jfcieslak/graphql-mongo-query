@@ -35,7 +35,10 @@ const args = {
 		b: { n: 5 },
 		c: 'normal',
 		date: '2020',
-		rename: 'dickpics'
+        rename: 'dickpics',
+        deep: {
+            deepkey: 'hidden'
+        }
 	},
 	_GT: 5,
 	_NIN: [1, 2],
@@ -54,6 +57,7 @@ test('functional', () => {
 		'nested.b': 25,
 		'nested.c': 'normal',
 		'nested.date': new Date('2020'),
+		'nested.deep.deepkey': 'hidden',
 		newname: 'dickpics',
 		$gt: 5,
 		$nin: [1, 2],

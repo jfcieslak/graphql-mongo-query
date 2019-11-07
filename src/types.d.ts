@@ -1,4 +1,4 @@
-export type ArgType = 'OPERATOR' | 'COMPUTED' | 'VALUE' | 'ARRAY' | 'NESTED' | 'FLAT'
+export type ArgType = 'OPERATOR' | 'COMPUTED' | 'PRIMITIVE' | 'ARRAY' | 'NESTED' | 'FLAT'
 
 export type ValueParser = (parent: any) => any
 
