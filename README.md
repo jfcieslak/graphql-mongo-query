@@ -35,21 +35,41 @@ By default, this parser assumes a simple structural convention for writing your 
 
     `{ nested: { level1: { level2: { _NE: 10 } } } }` will parse to: `{ 'nested.level1.level2': { $ne: 10 } }`
 
-
 ## Usage:
+
+**IMPORTANT:**
+
+Since version 2 this package is a pure function by default. If you want to use the deprecated class syntax, you can import it from `graphql-mongo-query/class`
+
+**since 2.0.0**
 
 ```javascript
 import GQLMongoQuery from 'graphql-mongo-query'
-const parser = new GQLMongoQuery(<keywords?>, <values?>, <merge?>)
-
 // Example arguments:
 const args = { _OR: [{ num: 10 }, { date: { _DATE: '2018' } }] }
 
-const MongoFilters = parser.buildFilters(arg)
+const parser = GQLMongoQuery(<keywords?>, <values?>, <merge?>)
+const MongoFilters = parser(args)
 
 // MongoFilters will equal to:
 // {$or: [ { num: 10 }, { date: new Date('2018') } ]}
 ```
+
+**before 2.0.0**
+
+```javascript
+import GQLMongoQuery from 'graphql-mongo-query/class'
+// Example arguments:
+const args = { _OR: [{ num: 10 }, { date: { _DATE: '2018' } }] }
+
+const parser = new GQLMongoQuery(<keywords?>, <values?>, <merge?>)
+const MongoFilters = parser.buildFilters(args)
+
+// MongoFilters will equal to:
+// {$or: [ { num: 10 }, { date: new Date('2018') } ]}
+```
+
+
 
 ## Options:
 
@@ -96,7 +116,7 @@ Maps the arg keywords to mongo keywords.
 An object of value functions taking `arg` argument. Each function should return a mongoDB valid value.
 
 ```javascript
-// Defaults:
+// Example:
 {
 	_EXACT(parent) {
 		return parent._EXACT
@@ -124,7 +144,12 @@ An example of a complex Input filter and it’s parsed value:
 
 ```javascript
 // arg received from graphQL input:
-const arg = {
+const values = {
+    _DATE(parent) {
+        return new Date(parent._DATE)
+    }
+}
+const args = {
 	_OR: [
 		{ field1: { _NE: 'not me' } },
 		{ field2: { _IN: ['A', 'B'] } }
@@ -134,7 +159,7 @@ const arg = {
 }
 
 // Parsed filter:
-const filter = new GQLMongoQuery().buildFilters(arg)
+const filter = GQLMongoQuery(null, values)(args)
 expect(filter).toEqual({
 	$or: [
 		{ field1: { $ne: 'not me' } },

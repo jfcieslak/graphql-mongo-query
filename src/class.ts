@@ -126,7 +126,7 @@ export default class GQLMongoQuery {
 				isFinal = true
 			}
 
-			// subval is a DIRECT VALUE
+			// subval is a PRIMITIVE
 			else if (this.isPrimitive(subval)) {
 				result[subkey] = this.buildFilters(subval)
 				isFinal = true

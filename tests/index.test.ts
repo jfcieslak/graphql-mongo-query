@@ -1,4 +1,4 @@
-import parseQuery from '../src/functional'
+import parseQuery, {isNested, isComputable} from '../src/'
 import {ValueParser, Values} from '../src/types'
 
 const values: Values = {

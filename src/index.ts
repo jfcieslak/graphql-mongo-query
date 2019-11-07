@@ -1,6 +1,16 @@
 import { ArgType, Values, Keywords} from './types'
 
-const defaultKeywords: Keywords = {
+export const primitives = [
+	'string',
+	'number',
+	'boolean',
+	'bigint',
+	'undefined',
+	'null',
+	'symbol'
+]
+
+export const defaultKeywords: Keywords = {
 	_OR: '$or',
 	_AND: '$and',
 	_NOR: '$nor',
@@ -29,45 +39,44 @@ const defaultKeywords: Keywords = {
 }
 const defaultValues: Values = {}
 
-const primitives = ['string', 'number', 'boolean', 'bigint', 'undefined', 'null', 'symbol']
-
-const isOperator = (key: string, keywords: object): boolean => {
+export const isOperator = (key: string, keywords: object): boolean => {
     return Object.keys(keywords).includes(key)
 }
 
-const isPrimitive = (val): boolean => {
-    if (primitives.includes(typeof val)) return true
-    else return false
+export const isPrimitive = (val): boolean => {
+	if (primitives.includes(typeof val)) return true
+	else return false
 }
 
-const isComputable = (key: string, values: object): boolean => {
-    return Object.keys(values).includes(key)
+export const isComputable = (key: string, values: object): boolean => {
+	return Object.keys(values).includes(key)
 }
 
-const isNested = (value, keywords: object, values: object): boolean => {
-    if (typeof value !== 'object') return false
-    let nested = false
-    for (const key in value) {
-        if (!isOperator(key, keywords)
-            && !isPrimitive(value[key])
-            && !isComputable(key, values)
-        ) {
-            nested = true
-            break
-        }
-    }
-    return nested
+export const isNested = (value, keywords: object, values: object): boolean => {
+	if (typeof value !== 'object') return false
+	let nested = false
+	for (const key in value) {
+		if (
+			!isOperator(key, keywords) &&
+			!isPrimitive(value[key]) &&
+			!isComputable(key, values)
+		) {
+			nested = true
+			break
+		}
+	}
+	return nested
 }
 
-const computedValue = (parent: object, values: object) => {
-    for (const valueKey in values) {
-        if (parent[valueKey] !== undefined) {
-            return values[valueKey](parent)
-        }
-    }
+export const computedValue = (parent: object, values: object) => {
+	for (const valueKey in values) {
+		if (parent[valueKey] !== undefined) {
+			return values[valueKey](parent)
+		}
+	}
 }
 
-const argType = (
+export const argType = (
 	keywords: object,
 	values: object,
 	key?: string,
@@ -118,7 +127,7 @@ const parseNested = (
 			isFinal = true
 		}
 
-		// subval is a DIRECT VALUE
+		// subval is a PRIMITIVE
 		else if (isPrimitive(subval)) {
 			result[subkey] = buildFilters(subval, null, keywords, values)
 			isFinal = true
