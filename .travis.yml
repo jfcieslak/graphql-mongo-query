@@ -12,10 +12,9 @@ jobs:
         -
             stage: test
             script:
-                - yarn test index
+                - yarn test --coverage
             before_script: greenkeeper-lockfile-update
             after_script: greenkeeper-lockfile-upload
-            after_success: yarn codecov
         -
             stage: deploy
             if: branch = master
