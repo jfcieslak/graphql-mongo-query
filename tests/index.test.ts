@@ -1,28 +1,25 @@
 import parseQuery from '../src/'
-import {ValueParser, Values} from '../src/types'
+import {Values} from '../src/types'
 
 const values: Values = {
-    test1(parent): ValueParser {
-        parent.test1 = true
-        return parent
-    },
-    'nested.a'(parent) {
-        parent['nested.a'] = true
-        return parent
-    },
-    'nested.b'(parent) {
-        parent['nested.b'] = parent['nested.b'].n * parent['nested.b'].n
-        return parent
-    },
-    'nested.date'(parent) {
-        parent['nested.date'] = new Date(parent['nested.date'])
-        return parent
-    },
-    'nested.rename'(parent) {
-        parent.newname = parent['nested.rename']
-        delete parent['nested.rename']
-        return parent
-    }
+	test1(parent) {
+		return {test1: !!parent.test1}
+	},
+	'nested.a'() {
+		return {['nested.a']: true}
+	},
+	'nested.b'(parent) {
+		parent['nested.b'] = parent['nested.b'].n * parent['nested.b'].n
+		return parent
+	},
+	'nested.date'(parent) {
+		return { 'nested.date': new Date(parent['nested.date']) }
+	},
+	'nested.rename'(parent) {
+		const newname = parent['nested.rename']
+		delete parent['nested.rename']
+		return {newname}
+	}
 }
 
 const args = {
@@ -40,9 +37,9 @@ const args = {
 			deepkey: 'hidden'
 		},
 		superdeep: {
-            super: {
-                deep: 'key'
-            }
+			super: {
+				deep: 'key'
+			}
 		}
 	},
 	_GT: 5,
@@ -53,7 +50,7 @@ const args = {
 }
 
 test('functional', () => {
-    const parser = parseQuery(null, values)
+	const parser = parseQuery(null, values)
 	const filter = parser(args)
 	expect(filter).toEqual({
 		test1: true,

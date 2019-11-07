@@ -12,7 +12,6 @@ This small package helps with converting GraphQL `Input` arguments  to MongoDB f
 
 -   logical queries (`$or` `$and` `$nor`,`$not`,`$all`)
 -   comparative queries (`$ne` `$in` `$nin`, `$lt`, `$lte`, `$gt`, `$gte`)
--   Javascript entities like `RegExp` and `Date`
 -   Embedded object queries like: `{"embedded.level1.level2": 10}`
 
 And combinations of the above.
@@ -27,13 +26,10 @@ By default, this parser assumes a simple structural convention for writing your 
 
 	`_NIN` will parse to: `$nin` etc.
 
-2.  Use special keywords for Javascript entities like so:
-
-    `{_REGEX: {exp: 'expression', flag: 'i'}}` will parse to: `RegExp('epxression', 'i')`
-
-3.  Use nested objects for embedded queries, like so:
+2.  Use nested objects for embedded queries, like so:
 
     `{ nested: { level1: { level2: { _NE: 10 } } } }` will parse to: `{ 'nested.level1.level2': { $ne: 10 } }`
+
 
 ## Usage:
 
@@ -41,43 +37,43 @@ By default, this parser assumes a simple structural convention for writing your 
 
 Since version 2 this package is a pure function by default. If you want to use the deprecated class syntax, you can import it from `graphql-mongo-query/class`
 
-**since 2.0.0**
+**version >= 2.0.0**
 
 ```javascript
 import GQLMongoQuery from 'graphql-mongo-query'
 // Example arguments:
-const args = { _OR: [{ num: 10 }, { date: { _DATE: '2018' } }] }
+const query = { _OR: [{ num: 10 }, { nested: {property: 'X'} }] }
 
 const parser = GQLMongoQuery(<keywords?>, <values?>, <merge?>)
-const MongoFilters = parser(args)
+const MongoFilters = parser(query)
 
 // MongoFilters will equal to:
-// {$or: [ { num: 10 }, { date: new Date('2018') } ]}
+// {$or: [ { num: 10 }, { 'nested.property': 'X' } ]}
 ```
 
-**before 2.0.0**
+**version < 2.0.0**
 
 ```javascript
 import GQLMongoQuery from 'graphql-mongo-query/class'
 // Example arguments:
-const args = { _OR: [{ num: 10 }, { date: { _DATE: '2018' } }] }
+const query = { _OR: [{ num: 10 }, { nested: {property: 'X'} }] }
 
 const parser = new GQLMongoQuery(<keywords?>, <values?>, <merge?>)
-const MongoFilters = parser.buildFilters(args)
+const MongoFilters = parser.buildFiltersquerys)
 
 // MongoFilters will equal to:
-// {$or: [ { num: 10 }, { date: new Date('2018') } ]}
+// {$or: [ { num: 10 }, { 'nested.property': 'X' } ]}
 ```
 
 
 
 ## Options:
 
-`graphql-mongo-query` takes options to customize your keywords and special value entities (like Regex or Dates). All options are optional. By default, they will be merged with defaults.
+`graphql-mongo-query` takes options to customize your keywords and special value entities. All options are optional. By default, they will be merged with defaults.
 
 #### `keywords` (optional)
 
-Maps the arg keywords to mongo keywords.
+Maps the query keywords to mongo keywords.
 
 ```javascript
 // Defaults:
@@ -113,25 +109,35 @@ Maps the arg keywords to mongo keywords.
 
 #### `values` (optional)
 
-An object of value functions taking `arg` argument. Each function should return a mongoDB valid value.
+An object mapping specified query keys to functions that will resolve their value.
 
-```javascript
-// Example:
-{
-	_EXACT(parent) {
-		return parent._EXACT
+These resolver functions take `parent` object as the only parameter, and should return a value that will replace that parent. Parent object is a single single `{key: value}` pair.
+
+The parser will iterate through a query, and when finding a key that matches, it will replace the entire `{key: value}` pair with the result of the function.
+
+```typescript
+// Examples:
+const values = {
+	test1(parent) {
+		return {test1: !!parent.test1}
 	},
-	_REGEX(parent) {
-		if (!parent._REGEX.exp) throw new Error('_REGEX object must contain exp property')
-		return RegExp(parent._REGEX.exp, parent._REGEX.flag)
+	'nested.a'() {
+		return {['nested.a']: true}
 	},
-	_DATE(parent) {
-		return new Date(parent._DATE)
+	'nested.b'(parent) {
+		parent['nested.b'] = parent['nested.b'].n * parent['nested.b'].n
+		return parent
+	},
+	'nested.date'(parent) {
+		return { 'nested.date': new Date(parent['nested.date']) }
+	},
+	'nested.rename'(parent) {
+		const newname = parent['nested.rename']
+		delete parent['nested.rename']
+		return {newname}
 	}
 }
 ```
-The parser will iterate through args, and when finding a keyword in a given arg, it will convert the entire arg  according to the function. Note that the order matters, so if the parser will find `_REGEX` key, it will convert that arg into a `RegExp` without further scanning for other keywords.
-
 #### `merge` (optional, default: `true`)
 
 If set to true, `keywords` and `values` from options will be merged with defaults. Otherwise they will overwrite the defaults.
@@ -145,27 +151,28 @@ An example of a complex Input filter and it’s parsed value:
 ```javascript
 // arg received from graphQL input:
 const values = {
-    _DATE(parent) {
-        return new Date(parent._DATE)
-    }
+	dateField(parent) {
+		parent.dateField = new Date(parent.dateField)
+		return parent
+	}
 }
-const args = {
+const query = {
 	_OR: [
 		{ field1: { _NE: 'not me' } },
 		{ field2: { _IN: ['A', 'B'] } }
 	],
 	nested: { level1: { level2: { _NE: 10 } } },
-	dateField: { _DATE: '2018-02-20' }
+	dateField: '2020-02-20'
 }
 
 // Parsed filter:
-const filter = GQLMongoQuery(null, values)(args)
+const filter = GQLMongoQuery(null, values)querys)
 expect(filter).toEqual({
 	$or: [
 		{ field1: { $ne: 'not me' } },
 		{ field2: { $in: ['A', 'B'] } }
 	],
 	'nested.level1.level2': { $ne: 10 },
-	dateField: new Date('2018-02-20')
+	dateField: new Date('2020-02-20')
 })
 ```
