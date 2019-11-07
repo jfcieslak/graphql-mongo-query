@@ -1,6 +1,6 @@
-import parseQuery, { Values } from '../src/'
+import parseQuery, { Resolvers } from '../src/'
 
-const values: Values = {
+const resolvers: Resolvers = {
 	test1(parent) {
 		return {test1: !!parent.test1}
 	},
@@ -49,7 +49,7 @@ const args = {
 }
 
 test('functional', () => {
-	const parser = parseQuery(null, values)
+	const parser = parseQuery(null, resolvers)
 	const filter = parser(args)
 	expect(filter).toEqual({
 		test1: true,

@@ -1,7 +1,7 @@
 import GMQ from '../src/class'
 
-test('Flat computed values', () => {
-	const values = {
+test('Resolvers', () => {
+	const resolvers = {
 		test1(parent) {
 			parent.test1 = true
 			return parent
@@ -43,7 +43,7 @@ test('Flat computed values', () => {
 		_AND: [{ nested: { a: 'aaa' } }, { b: true }]
 	}
 
-	const filter = new GMQ(null, values).buildFilters(arg)
+	const filter = new GMQ(null, resolvers).buildFilters(arg)
 	expect(filter).toEqual({
 		test1: true,
 		logical: { $or: [1, 2] },

@@ -1,9 +1,9 @@
 export type ArgType = 'OPERATOR' | 'COMPUTED' | 'PRIMITIVE' | 'ARRAY' | 'NESTED' | 'FLAT'
 
-export type ValueParser = (parent: any) => any
+export type Resolver = (parent: any) => any
 
-export interface Values {
-	[key: string]: ValueParser
+export interface Resolvers {
+	[key: string]: Resolver
 }
 
 export interface Keywords {
@@ -47,7 +47,7 @@ export const defaultKeywords: Keywords = {
 	_MAX_DISTANCE: '$maxDistance',
 	_MIN_DISTANCE: '$minDistance'
 }
-const defaultValues: Values = {}
+const defaultValues: Resolvers = {}
 
 export const isOperator = (key: string, keywords: object): boolean => {
     return Object.keys(keywords).includes(key)
@@ -58,18 +58,18 @@ export const isPrimitive = (val): boolean => {
 	else return false
 }
 
-export const isComputable = (key: string, values: object): boolean => {
-	return Object.keys(values).includes(key)
+export const isComputable = (key: string, resolvers: object): boolean => {
+	return Object.keys(resolvers).includes(key)
 }
 
-export const isNested = (value, keywords: object, values: object): boolean => {
+export const isNested = (value, keywords: object, resolvers: object): boolean => {
 	if (typeof value !== 'object') return false
 	let nested = false
 	for (const key in value) {
 		if (
 			!isOperator(key, keywords) &&
 			!isPrimitive(value[key]) &&
-			!isComputable(key, values)
+			!isComputable(key, resolvers)
 		) {
 			nested = true
 			break
@@ -78,38 +78,38 @@ export const isNested = (value, keywords: object, values: object): boolean => {
 	return nested
 }
 
-export const computedValue = (parent: object, values: object) => {
-	for (const valueKey in values) {
+export const computedValue = (parent: object, resolvers: object) => {
+	for (const valueKey in resolvers) {
 		if (parent[valueKey] !== undefined) {
-			return values[valueKey](parent)
+			return resolvers[valueKey](parent)
 		}
 	}
 }
 
 export const argType = (
 	keywords: object,
-	values: object,
+	resolvers: object,
 	key?: string,
 	val?: string
 ): ArgType => {
 	if (isOperator(key, keywords)) return 'OPERATOR'
-	else if (isComputable(key, values)) return 'COMPUTED'
+	else if (isComputable(key, resolvers)) return 'COMPUTED'
 	else if (isPrimitive(val)) return 'PRIMITIVE'
 	else if (Array.isArray(val)) return 'ARRAY'
-	else if (isNested(val, keywords, values)) return 'NESTED'
+	else if (isNested(val, keywords, resolvers)) return 'NESTED'
 	else if (typeof val === 'object') return 'FLAT'
 	else return null
 }
 
 const parseNested = (
 	keywords: Keywords,
-	values: Values,
+	resolvers: Resolvers,
 	key: string,
 	val,
 	lastResult = {}
 ) => {
-	if (isComputable(key, values)) {
-		return buildFilters(val, key, keywords, values)
+	if (isComputable(key, resolvers)) {
+		return buildFilters(val, key, keywords, resolvers)
 	}
 	let result = lastResult
 
@@ -117,14 +117,14 @@ const parseNested = (
 		let isFinal = false
 
 		// COMPUTABLE VALUE
-		if (isComputable(k, values)) {
-			result = { ...result, ...buildFilters(val[k], k, keywords, values) }
+		if (isComputable(k, resolvers)) {
+			result = { ...result, ...buildFilters(val[k], k, keywords, resolvers) }
 			return result
 		}
 
 		// OPERATOR
 		if (isOperator(k, keywords)) {
-			result = { ...result, [key]: buildFilters(val, key, keywords, values) }
+			result = { ...result, [key]: buildFilters(val, key, keywords, resolvers) }
 			return result
 		}
 
@@ -132,29 +132,29 @@ const parseNested = (
 		const subval = val[k]
 
 		// subval is COMPUTABLE VALUE
-		if (isComputable(subkey, values)) {
-			result = { ...result, ...buildFilters(subval, subkey, keywords, values) }
+		if (isComputable(subkey, resolvers)) {
+			result = { ...result, ...buildFilters(subval, subkey, keywords, resolvers) }
 			isFinal = true
 		}
 
 		// subval is a PRIMITIVE
 		else if (isPrimitive(subval)) {
-			result[subkey] = buildFilters(subval, null, keywords, values)
+			result[subkey] = buildFilters(subval, null, keywords, resolvers)
 			isFinal = true
 		}
 
 		// subval is NESTED
         else {
             for (const sk in subval) {
-                const t = argType(keywords, values, sk, subval)
+                const t = argType(keywords, resolvers, sk, subval)
                 if (t !== 'NESTED' && t !== 'FLAT') {
-                    result[subkey] = buildFilters(subval, null, keywords, values)
+                    result[subkey] = buildFilters(subval, null, keywords, resolvers)
                     isFinal = true
                     break
                 }
             }
         }
-		if (!isFinal) parseNested(keywords, values, subkey, subval, result)
+		if (!isFinal) parseNested(keywords, resolvers, subkey, subval, result)
 	}
 	return result
 }
@@ -163,11 +163,11 @@ export const buildFilters = (
 	args,
 	parentKey?: string,
 	keywords: Keywords = {},
-	values: Values = {}
+	resolvers: Resolvers = {}
 ) => {
 	// PARENT IS A COMPUTABLE VALUE
-	if (isComputable(parentKey, values)) {
-		return computedValue({ [parentKey]: args }, values)
+	if (isComputable(parentKey, resolvers)) {
+		return computedValue({ [parentKey]: args }, resolvers)
 	}
 
 	// NO PARENT AND ARGS IS A DIRECT VALUE
@@ -181,11 +181,11 @@ export const buildFilters = (
 	for (const key in args) {
 		if (!filters) filters = {}
 		const val = args[key]
-		const t = argType(keywords, values, key, val)
+		const t = argType(keywords, resolvers, key, val)
 
 		// COMPUTED VALUE
-		if (isComputable(key, values)) {
-			const computed = buildFilters(val, key, keywords, values)
+		if (isComputable(key, resolvers)) {
+			const computed = buildFilters(val, key, keywords, resolvers)
 			filters = {
 				...filters,
 				...computed
@@ -195,22 +195,22 @@ export const buildFilters = (
 		else if (t === 'OPERATOR') {
 			const keyword = keywords[key]
 			if (Array.isArray(val)) {
-				filters[keyword] = val.map(v => buildFilters(v, null, keywords, values))
+				filters[keyword] = val.map(v => buildFilters(v, null, keywords, resolvers))
 			} else {
-				filters[keyword] = buildFilters(val, null, keywords, values)
+				filters[keyword] = buildFilters(val, null, keywords, resolvers)
 			}
 		}
 		// NESTED QUERY
 		else if (t === 'NESTED' || t === 'FLAT') {
-			filters = { ...filters, ...parseNested(keywords, values, key, val) }
+			filters = { ...filters, ...parseNested(keywords, resolvers, key, val) }
 		}
 		// ARRAY
 		else if (t === 'ARRAY') {
-			filters[key] = val.map(v => buildFilters(v, null, keywords, values))
+			filters[key] = val.map(v => buildFilters(v, null, keywords, resolvers))
 		}
 		// ELSE
 		else {
-			filters[key] = buildFilters(val, null, keywords, values)
+			filters[key] = buildFilters(val, null, keywords, resolvers)
 		}
 	}
 	return filters
@@ -218,12 +218,12 @@ export const buildFilters = (
 
 export default (
 	customKeywords: Keywords = {},
-	customValues: Values = {},
+	customResolvers: Resolvers = {},
 	merge: boolean = true
 ) => {
 	const keywords: Keywords = merge
 		? { ...defaultKeywords, ...customKeywords }
 		: customKeywords
-	const values: Values = merge ? { ...defaultValues, ...customValues } : customValues
-	return (args: object): object => buildFilters(args, null, keywords, values)
+	const resolvers: Resolvers = merge ? { ...defaultValues, ...customResolvers } : customResolvers
+	return (args: object): object => buildFilters(args, null, keywords, resolvers)
 }

@@ -1,9 +1,9 @@
 export type ArgType = 'OPERATOR' | 'COMPUTED' | 'PRIMITIVE' | 'ARRAY' | 'NESTED' | 'FLAT'
 
-export type ValueParser = (parent: any) => any
+export type Resolver = (parent: any) => any
 
-export interface Values {
-	[key: string]: ValueParser
+export interface Resolvers {
+	[key: string]: Resolver
 }
 
 export interface Keywords {
@@ -37,7 +37,7 @@ const defaultKeywords: Keywords = {
 	_MAX_DISTANCE: '$maxDistance',
 	_MIN_DISTANCE: '$minDistance'
 }
-const defaultValues: Values = {}
+const defaultValues: Resolvers = {}
 
 const primitives = [
 	'string',
@@ -51,15 +51,15 @@ const primitives = [
 
 export default class GQLMongoQuery {
 	keywords: Keywords
-	values: Values
+	resolvers: Resolvers
 
 	constructor(
 		keywords: Keywords = defaultKeywords,
-		values: Values = defaultValues,
+		resolvers: Resolvers = defaultValues,
 		merge: boolean = true
 	) {
 		this.keywords = merge ? { ...defaultKeywords, ...keywords } : keywords
-		this.values = merge ? { ...defaultValues, ...values } : values
+		this.resolvers = merge ? { ...defaultValues, ...resolvers } : resolvers
 	}
 
 	private isOperator(key): boolean {
@@ -72,7 +72,7 @@ export default class GQLMongoQuery {
 	}
 
 	private isComputable(key): boolean {
-		return Object.keys(this.values).includes(key)
+		return Object.keys(this.resolvers).includes(key)
 	}
 
 	private isNested(obj): boolean {
@@ -88,9 +88,9 @@ export default class GQLMongoQuery {
 	}
 
 	private computedValue(args) {
-		for (const valueKey in this.values) {
+		for (const valueKey in this.resolvers) {
 			if (args[valueKey] !== undefined) {
-				return this.values[valueKey](args)
+				return this.resolvers[valueKey](args)
 			}
 		}
 	}

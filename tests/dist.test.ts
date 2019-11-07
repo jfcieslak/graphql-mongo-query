@@ -1,6 +1,6 @@
-import parseQuery, { Values } from '../dist'
+import parseQuery, { Resolvers } from '../dist'
 
-const values: Values = {
+const resolvers: Resolvers = {
     test1(parent) {
         parent.test1 = true
         return parent
@@ -52,7 +52,7 @@ const args = {
 }
 
 test('functional', () => {
-    const parser = parseQuery(null, values)
+    const parser = parseQuery(null, resolvers)
 	const filter = parser(args)
 	expect(filter).toEqual({
 		test1: true,

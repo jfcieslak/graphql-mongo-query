@@ -28,7 +28,8 @@ By default, this parser assumes a simple structural convention for writing your 
 
 2.  Use nested objects for embedded queries, like so:
 
-    `{ nested: { level1: { level2: { _NE: 10 } } } }` will parse to: `{ 'nested.level1.level2': { $ne: 10 } }`
+    `{ nested: { level1: { level2: { _NE: 10 } } } }` will parse to:
+    `{ 'nested.level1.level2': { $ne: 10 } }`
 
 
 ## Usage:
@@ -44,7 +45,7 @@ import GQLMongoQuery from 'graphql-mongo-query'
 // Example arguments:
 const query = { _OR: [{ num: 10 }, { nested: {property: 'X'} }] }
 
-const parser = GQLMongoQuery(<keywords?>, <values?>, <merge?>)
+const parser = GQLMongoQuery(<keywords?>, <resolvers?>, <merge?>)
 const MongoFilters = parser(query)
 
 // MongoFilters will equal to:
@@ -58,7 +59,7 @@ import GQLMongoQuery from 'graphql-mongo-query/class'
 // Example arguments:
 const query = { _OR: [{ num: 10 }, { nested: {property: 'X'} }] }
 
-const parser = new GQLMongoQuery(<keywords?>, <values?>, <merge?>)
+const parser = new GQLMongoQuery(<keywords?>, <resolvers?>, <merge?>)
 const MongoFilters = parser.buildFiltersquerys)
 
 // MongoFilters will equal to:
@@ -73,7 +74,7 @@ const MongoFilters = parser.buildFiltersquerys)
 
 #### `keywords` (optional)
 
-Maps the query keywords to mongo keywords.
+Maps the query keywords to mongo keywords. Every key in this object will be replaced by corresponding value.
 
 ```javascript
 // Defaults:
@@ -107,17 +108,17 @@ Maps the query keywords to mongo keywords.
 }
 ```
 
-#### `values` (optional)
+#### `resolvers` (optional)
 
-An object mapping specified query keys to functions that will resolve their value.
+An object mapping specified query keys to custom resolver functions that will return a new key and value.
 
 These resolver functions take `parent` object as the only parameter, and should return a value that will replace that parent. Parent object is a single single `{key: value}` pair.
 
-The parser will iterate through a query, and when finding a key that matches, it will replace the entire `{key: value}` pair with the result of the function.
+The parser will iterate through a query, and when finding a key that matches, it will replace the entire `{key: value}` pair with the result of the resolver function.
 
 ```typescript
 // Examples:
-const values = {
+const resolvers = {
 	test1(parent) {
 		return {test1: !!parent.test1}
 	},
@@ -140,7 +141,7 @@ const values = {
 ```
 #### `merge` (optional, default: `true`)
 
-If set to true, `keywords` and `values` from options will be merged with defaults. Otherwise they will overwrite the defaults.
+If set to true, `keywords` and `resolvers` from options will be merged with defaults. Otherwise they will overwrite the defaults.
 
 ## Examples:
 
@@ -149,13 +150,15 @@ For examples checkout the [tests](https://github.com/jfcieslak/graphql-mongo-que
 An example of a complex Input filter and it’s parsed value:
 
 ```javascript
-// arg received from graphQL input:
-const values = {
+// resolvers option object
+const resolvers = {
 	dateField(parent) {
 		parent.dateField = new Date(parent.dateField)
 		return parent
 	}
 }
+
+// query received from graphQL input:
 const query = {
 	_OR: [
 		{ field1: { _NE: 'not me' } },
@@ -166,7 +169,7 @@ const query = {
 }
 
 // Parsed filter:
-const filter = GQLMongoQuery(null, values)querys)
+const filter = GQLMongoQuery(null, resolvers)querys)
 expect(filter).toEqual({
 	$or: [
 		{ field1: { $ne: 'not me' } },
