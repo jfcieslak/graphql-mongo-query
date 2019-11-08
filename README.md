@@ -60,7 +60,7 @@ import GQLMongoQuery from 'graphql-mongo-query/class'
 const query = { _OR: [{ num: 10 }, { nested: {property: 'X'} }] }
 
 const parser = new GQLMongoQuery(<keywords?>, <resolvers?>, <merge?>)
-const MongoFilters = parser.buildFiltersquerys)
+const MongoFilters = parser.buildFilters(query)
 
 // MongoFilters will equal to:
 // {$or: [ { num: 10 }, { 'nested.property': 'X' } ]}
