@@ -55,7 +55,7 @@ const MongoFilters = parser(query)
 **version < 2.0.0**
 
 ```javascript
-import GQLMongoQuery from 'graphql-mongo-query/class'
+import GQLMongoQuery from 'graphql-mongo-query/dist/class'
 // Example arguments:
 const query = { _OR: [{ num: 10 }, { nested: {property: 'X'} }] }
 
@@ -65,8 +65,6 @@ const MongoFilters = parser.buildFilters(query)
 // MongoFilters will equal to:
 // {$or: [ { num: 10 }, { 'nested.property': 'X' } ]}
 ```
-
-
 
 ## Options:
 
