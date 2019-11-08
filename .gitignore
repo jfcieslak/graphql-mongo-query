@@ -4,3 +4,4 @@ yarn-error.log
 .env
 dist
 tests/dzQueries.test.ts
+coverage
