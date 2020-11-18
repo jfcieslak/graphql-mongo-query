@@ -21,7 +21,7 @@
 		"travis-deploy-once": "travis-deploy-once"
 	},
 	"devDependencies": {
-		"@types/jest": "^24.0.17",
+		"@types/jest": "^25.1.4",
 		"codecov": "^3.6.5",
 		"jest": "^24.8.0",
 		"semantic-release": "^17.0.0",
