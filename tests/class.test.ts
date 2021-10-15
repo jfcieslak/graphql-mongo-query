@@ -34,7 +34,7 @@ test('Resolvers', () => {
 			b: { n: 5 },
 			c: 'normal',
 			date: '2020',
-			rename: 'dickpics'
+			rename: 'my name'
 		},
 		_GT: 5,
 		_NIN: [1, 2],
@@ -51,7 +51,7 @@ test('Resolvers', () => {
 		'nested.b': 25,
 		'nested.c': 'normal',
 		'nested.date': new Date('2020'),
-		newname: 'dickpics',
+		newname: 'my name',
 		$gt: 5,
 		$nin: [1, 2],
 		arr: [1, 2, 3],

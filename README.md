@@ -8,7 +8,7 @@ Parse GraphQL Input arguments to MongoDB query filters. For use in GraphQL resol
 
 ## What does it do?
 
-This small package helps with converting GraphQL `Input` arguments  to MongoDB filters, following a certain convention. It supports:
+This small package helps with converting GraphQL `Input` arguments to MongoDB filters, following a certain convention. It supports:
 
 -   logical queries (`$or` `$and` `$nor`,`$not`,`$all`)
 -   comparative queries (`$ne` `$in` `$nin`, `$lt`, `$lte`, `$gt`, `$gte`)
@@ -22,15 +22,14 @@ By default, this parser assumes a simple structural convention for writing your 
 
 1.  write mongo keywords like so:
 
-    `_OR`  will parse to: `$or`
+    `_OR` will parse to: `$or`
 
-	`_NIN` will parse to: `$nin` etc.
+    `_NIN` will parse to: `$nin` etc.
 
 2.  Use nested objects for embedded queries, like so:
 
     `{ nested: { level1: { level2: { _NE: 10 } } } }` will parse to:
     `{ 'nested.level1.level2': { $ne: 10 } }`
-
 
 ## Usage:
 
@@ -70,7 +69,7 @@ const MongoFilters = parser.buildFilters(query)
 
 `graphql-mongo-query` takes options to customize your keywords and special value entities. All options are optional. By default, they will be merged with defaults.
 
-#### `keywords` (optional)
+### `keywords` (optional)
 
 Maps the query keywords to mongo keywords. Every key in this object will be replaced by corresponding value.
 
@@ -106,7 +105,7 @@ Maps the query keywords to mongo keywords. Every key in this object will be repl
 }
 ```
 
-#### `resolvers` (optional)
+### `resolvers` (optional)
 
 An object mapping specified query keys to custom resolver functions that will return a new key and value.
 
@@ -117,31 +116,37 @@ The parser will iterate through a query, and when finding a key that matches, it
 ```typescript
 // Examples:
 const resolvers = {
-	test1(parent) {
-		return {test1: !!parent.test1}
+	// convert to boolean
+	someTruthyVal(parent) {
+		return { someTruthyVal: !!parent.someTruthyVal }
 	},
+	// replace value with true
 	'nested.a'() {
-		return {['nested.a']: true}
+		return { 'nested.a': true }
 	},
+	// replace nested.b.n with it's squared value
 	'nested.b'(parent) {
-		parent['nested.b'] = parent['nested.b'].n * parent['nested.b'].n
-		return parent
+		const squared = parent['nested.b'].n * parent['nested.b'].n
+		return { ...parent, n: squared }
 	},
+	// convert string to Date
 	'nested.date'(parent) {
 		return { 'nested.date': new Date(parent['nested.date']) }
 	},
+	// rename the key
 	'nested.rename'(parent) {
 		const newname = parent['nested.rename']
 		delete parent['nested.rename']
-		return {newname}
+		return { newname }
 	}
 }
 ```
-#### `merge` (optional, default: `true`)
+
+### `merge` (optional, default: `true`)
 
 If set to true, `keywords` and `resolvers` from options will be merged with defaults. Otherwise they will overwrite the defaults.
 
-## Examples:
+## Examples
 
 For examples checkout the [tests](https://github.com/jfcieslak/graphql-mongo-query/blob/master/tests/index.test.ts)
 
@@ -158,21 +163,15 @@ const resolvers = {
 
 // query received from graphQL input:
 const query = {
-	_OR: [
-		{ field1: { _NE: 'not me' } },
-		{ field2: { _IN: ['A', 'B'] } }
-	],
+	_OR: [{ field1: { _NE: 'not me' } }, { field2: { _IN: ['A', 'B'] } }],
 	nested: { level1: { level2: { _NE: 10 } } },
 	dateField: '2020-02-20'
 }
 
 // Parsed filter:
-const filter = GQLMongoQuery(null, resolvers)querys)
+const filter = GQLMongoQuery(null, resolvers)
 expect(filter).toEqual({
-	$or: [
-		{ field1: { $ne: 'not me' } },
-		{ field2: { $in: ['A', 'B'] } }
-	],
+	$or: [{ field1: { $ne: 'not me' } }, { field2: { $in: ['A', 'B'] } }],
 	'nested.level1.level2': { $ne: 10 },
 	dateField: new Date('2020-02-20')
 })

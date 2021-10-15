@@ -13,12 +13,19 @@
 	"publishConfig": {
 		"access": "public"
 	},
+	"files": [
+		"dist/class.d.ts",
+		"dist/class.js",
+		"dist/index.d.ts",
+		"dist/index.js"
+	],
 	"scripts": {
 		"build": "tsc",
 		"test": "jest",
 		"test:watch": "jest --watch",
 		"semantic-release": "semantic-release",
-		"travis-deploy-once": "travis-deploy-once"
+		"travis-deploy-once": "travis-deploy-once",
+		"prepare": "npm run build"
 	},
 	"devDependencies": {
 		"@types/jest": "^25.1.4",

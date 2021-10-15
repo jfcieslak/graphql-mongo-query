@@ -2,10 +2,10 @@ import parseQuery, { Resolvers } from '../src/'
 
 const resolvers: Resolvers = {
 	test1(parent) {
-		return {test1: !!parent.test1}
+		return { test1: !!parent.test1 }
 	},
 	'nested.a'() {
-		return {['nested.a']: true}
+		return { 'nested.a': true }
 	},
 	'nested.b'(parent) {
 		parent['nested.b'] = parent['nested.b'].n * parent['nested.b'].n
@@ -17,7 +17,7 @@ const resolvers: Resolvers = {
 	'nested.rename'(parent) {
 		const newname = parent['nested.rename']
 		delete parent['nested.rename']
-		return {newname}
+		return { newname }
 	}
 }
 
@@ -31,7 +31,7 @@ const args = {
 		b: { n: 5 },
 		c: 'normal',
 		date: '2020',
-		rename: 'dickpics',
+		rename: 'my name',
 		deep: {
 			deepkey: 'hidden'
 		},
@@ -60,7 +60,7 @@ test('functional', () => {
 		'nested.date': new Date('2020'),
 		'nested.deep.deepkey': 'hidden',
 		'nested.superdeep.super.deep': 'key',
-		newname: 'dickpics',
+		newname: 'my name',
 		$gt: 5,
 		$nin: [1, 2],
 		arr: [1, 2, 3],
